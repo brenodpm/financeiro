@@ -1,3 +1,22 @@
+use std::collections::HashMap;
+use color_eyre::Result;
+use ratatui::{
+    buffer::Buffer,
+    crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind},
+    layout::{Constraint, Layout, Rect},
+    style::{
+        palette::tailwind::{BLUE, GREEN, SLATE},
+        Color, Modifier, Style, Stylize,
+    },
+    symbols,
+    text::Line,
+    widgets::{
+        Block, Borders, HighlightSpacing, List, ListItem, ListState, Padding, Paragraph,
+        StatefulWidget, Widget, Wrap,
+    },
+    DefaultTerminal,
+};
+
 use crate::{
     lancamento::Lancamento,
     regra::{Buscar, Regra},
@@ -43,24 +62,6 @@ fn encontrar_categoria(pendente: Vec<Lancamento>) {
  *                                             TUI DE CATEGORIZAÇÃO
  *********************************************************************************************************************/
 
-use color_eyre::Result;
-use itertools::Itertools;
-use ratatui::{
-    buffer::Buffer,
-    crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind},
-    layout::{Constraint, Layout, Rect},
-    style::{
-        palette::tailwind::{BLUE, GREEN, SLATE},
-        Color, Modifier, Style, Stylize,
-    },
-    symbols,
-    text::Line,
-    widgets::{
-        Block, Borders, HighlightSpacing, List, ListItem, ListState, Padding, Paragraph,
-        StatefulWidget, Widget, Wrap,
-    },
-    DefaultTerminal,
-};
 
 const TODO_HEADER_STYLE: Style = Style::new().fg(SLATE.c100).bg(BLUE.c800);
 const NORMAL_ROW_BG: Color = SLATE.c950;
@@ -90,23 +91,29 @@ struct NovasRegrasList {
 #[derive(Debug)]
 struct NovaRegra {
     regex: String,
-    quant: usize,
+    lancamentos: Vec<Lancamento>,
     categoria: Option<String>,
     info: String,
 }
 
 impl Default for App {
     fn default() -> Self {
-        let mut itens: Vec<NovaRegra> = Lancamento::nao_categorizados_listar()
+        let mut mapa: HashMap<String, Vec<Lancamento>> = HashMap::new();
+
+        Lancamento::nao_categorizados_listar()
             .into_iter()
-            .map(|lancamento| lancamento.descricao)
-            .counts()
+            .for_each(|l| {
+                mapa.entry(l.descricao.clone())
+                    .or_insert_with(Vec::new)
+                    .push(l);
+            });
+
+        let mut itens: Vec<NovaRegra> = mapa
             .into_iter()
-            .map(|(desc, cont)| NovaRegra::new(desc.clone(), cont))
-            .into_iter()
+            .map(|(nome, notas)| NovaRegra::new(nome, notas))
             .collect();
 
-        itens.sort_by(|a, b| b.quant.cmp(&a.quant));
+        itens.sort_by(|a, b| b.lancamentos.len().cmp(&a.lancamentos.len()));
 
         Self {
             should_exit: false,
@@ -119,12 +126,12 @@ impl Default for App {
 }
 
 impl NovaRegra {
-    fn new(todo: String, quant: usize) -> Self {
+    fn new(todo: String, lancamentos: Vec<Lancamento>) -> Self {
         Self {
             categoria: None,
             regex: todo.clone(),
             info: todo,
-            quant: quant,
+            lancamentos: lancamentos,
         }
     }
 }
@@ -145,15 +152,11 @@ impl App {
             return;
         }
         match key.code {
-            KeyCode::Char('q') | KeyCode::Esc => self.should_exit = true,
-            KeyCode::Char('h') | KeyCode::Left => self.select_none(),
-            KeyCode::Char('j') | KeyCode::Down => self.select_next(),
-            KeyCode::Char('k') | KeyCode::Up => self.select_previous(),
-            KeyCode::Char('g') | KeyCode::Home => self.select_first(),
-            KeyCode::Char('G') | KeyCode::End => self.select_last(),
-            KeyCode::Char('l') | KeyCode::Right | KeyCode::Enter => {
-                self.toggle_status();
-            }
+            KeyCode::Esc => self.should_exit = true,
+            KeyCode::Left => self.select_none(),
+            KeyCode::Down => self.select_next(),
+            KeyCode::Up => self.select_previous(),
+            KeyCode::Right | KeyCode::Enter => self.toggle_status(),
             _ => {}
         }
     }
@@ -257,17 +260,32 @@ impl App {
     fn render_selected_item(&self, area: Rect, buf: &mut Buffer) {
         // We get the info depending on the item's state.
         let info = if let Some(i) = self.todo_list.state.selected() {
-            match &self.todo_list.items[i].categoria {
-                Some(c) => format!("✓ DONE: {}, {}", self.todo_list.items[i].info, c),
-                None => format!("☐ TODO: {}", self.todo_list.items[i].info),
-            }
+            let mut info: Vec<String> = Vec::new();
+            info.push(self.todo_list.items[i].regex.clone());
+            info.push("".to_string());
+
+            let mut itens = self.todo_list.items[i]
+                .lancamentos
+                .clone()
+                .into_iter()
+                .map(|l| {
+                    format!(
+                        "Data: {}; Valor: RS {:0.02}",
+                        l.data.format("%d/%m/%Y"),
+                        l.valor
+                    )
+                })
+                .collect::<Vec<String>>();
+
+            info.append(&mut itens);
+            info.join("\n").to_string()
         } else {
             "Nothing selected...".to_string()
         };
 
         // We show the list item's info under the list in this paragraph
         let block = Block::new()
-            .title(Line::raw("TODO Info").centered())
+            .title(Line::raw("Lançamentos").centered())
             .borders(Borders::TOP)
             .border_set(symbols::border::EMPTY)
             .border_style(TODO_HEADER_STYLE)
@@ -295,11 +313,11 @@ impl From<&NovaRegra> for ListItem<'_> {
     fn from(value: &NovaRegra) -> Self {
         let line = match &value.categoria {
             None => Line::styled(
-                format!(" ☐ {:02} - {}", value.quant, value.regex),
+                format!(" ☐ {:02} - {}", value.lancamentos.len(), value.regex),
                 TEXT_FG_COLOR,
             ),
             Some(_) => Line::styled(
-                format!(" ✓ {:02} - {}", value.quant, value.regex),
+                format!(" ✓ {:02} - {}", value.lancamentos.len(), value.regex),
                 COMPLETED_TEXT_FG_COLOR,
             ),
         };
