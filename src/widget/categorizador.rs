@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use color_eyre::Result;
 use ratatui::{
     buffer::Buffer,
@@ -16,52 +15,9 @@ use ratatui::{
     },
     DefaultTerminal,
 };
+use std::collections::HashMap;
 
-use crate::{
-    lancamento::Lancamento,
-    regra::{Buscar, Regra},
-};
-
-impl Lancamento {
-    pub fn categorizar(itens: Vec<Lancamento>) {
-        println!("\n\nCategorizar");
-        let mut pendente = Lancamento::nao_categorizados_listar();
-
-        itens.into_iter().for_each(|novo| {
-            if !pendente.iter().any(|a| a.id == novo.id) {
-                pendente.push(novo);
-            }
-        });
-
-        println!("Total a ser categorizados: {}", pendente.len());
-        encontrar_categoria(pendente);
-        let _ = categorizador_tui_start();
-    }
-}
-fn encontrar_categoria(pendente: Vec<Lancamento>) {
-    let regras = Regra::listar();
-    let mut encontrados: Vec<Lancamento> = Vec::new();
-    let mut nao_encontrado: Vec<Lancamento> = Vec::new();
-
-    for mut item in pendente {
-        match &regras.buscar(&item.descricao) {
-            Some(c) => {
-                item.categoria = Some(c.clone());
-                encontrados.push(item);
-            }
-            None => {
-                nao_encontrado.push(item);
-            }
-        }
-    }
-
-    Lancamento::nao_categorizados_salvar(&nao_encontrado);
-}
-
-/*********************************************************************************************************************
- *                                             TUI DE CATEGORIZAÇÃO
- *********************************************************************************************************************/
-
+use crate::dto::{Categoria, Lancamento, NovaRegra};
 
 const TODO_HEADER_STYLE: Style = Style::new().fg(SLATE.c100).bg(BLUE.c800);
 const NORMAL_ROW_BG: Color = SLATE.c950;
@@ -70,33 +26,14 @@ const SELECTED_STYLE: Style = Style::new().bg(SLATE.c800).add_modifier(Modifier:
 const TEXT_FG_COLOR: Color = SLATE.c200;
 const COMPLETED_TEXT_FG_COLOR: Color = GREEN.c500;
 
-fn categorizador_tui_start() -> Result<()> {
-    color_eyre::install()?;
-    let terminal = ratatui::init();
-    let app_result = App::default().run(terminal);
-    ratatui::restore();
-    app_result
+pub struct Categorizador {
+    pub should_exit: bool,
+    pub items: Vec<NovaRegra>,
+    pub categorias: Vec<Categoria>,
+    pub state: ListState,
 }
 
-struct App {
-    should_exit: bool,
-    todo_list: NovasRegrasList,
-}
-
-struct NovasRegrasList {
-    items: Vec<NovaRegra>,
-    state: ListState,
-}
-
-#[derive(Debug)]
-struct NovaRegra {
-    regex: String,
-    lancamentos: Vec<Lancamento>,
-    categoria: Option<String>,
-    info: String,
-}
-
-impl Default for App {
+impl Default for Categorizador {
     fn default() -> Self {
         let mut mapa: HashMap<String, Vec<Lancamento>> = HashMap::new();
 
@@ -117,27 +54,15 @@ impl Default for App {
 
         Self {
             should_exit: false,
-            todo_list: NovasRegrasList {
-                items: itens,
-                state: ListState::default(),
-            },
+            items: itens,
+            state: ListState::default(),
+            categorias: Categoria::listar()
         }
     }
 }
 
-impl NovaRegra {
-    fn new(todo: String, lancamentos: Vec<Lancamento>) -> Self {
-        Self {
-            categoria: None,
-            regex: todo.clone(),
-            info: todo,
-            lancamentos: lancamentos,
-        }
-    }
-}
-
-impl App {
-    fn run(mut self, mut terminal: DefaultTerminal) -> Result<()> {
+impl Categorizador {
+    pub fn run(mut self, terminal: &mut DefaultTerminal) -> Result<()> {
         while !self.should_exit {
             terminal.draw(|frame| frame.render_widget(&mut self, frame.area()))?;
             if let Event::Key(key) = event::read()? {
@@ -147,7 +72,7 @@ impl App {
         Ok(())
     }
 
-    fn handle_key(&mut self, key: KeyEvent) {
+    pub fn handle_key(&mut self, key: KeyEvent) {
         if key.kind != KeyEventKind::Press {
             return;
         }
@@ -162,28 +87,28 @@ impl App {
     }
 
     fn select_none(&mut self) {
-        self.todo_list.state.select(None);
+        self.state.select(None);
     }
 
     fn select_next(&mut self) {
-        self.todo_list.state.select_next();
+        self.state.select_next();
     }
     fn select_previous(&mut self) {
-        self.todo_list.state.select_previous();
+        self.state.select_previous();
     }
 
     fn select_first(&mut self) {
-        self.todo_list.state.select_first();
+        self.state.select_first();
     }
 
     fn select_last(&mut self) {
-        self.todo_list.state.select_last();
+        self.state.select_last();
     }
 
     /// Changes the status of the selected list item
     fn toggle_status(&mut self) {
-        if let Some(i) = self.todo_list.state.selected() {
-            self.todo_list.items[i].categoria = match &self.todo_list.items[i].categoria {
+        if let Some(i) = self.state.selected() {
+            self.items[i].categoria = match &self.items[i].categoria {
                 Some(_) => None,
                 None => Some("A Categoria entra aqui".to_string()),
             }
@@ -191,7 +116,7 @@ impl App {
     }
 }
 
-impl Widget for &mut App {
+impl Widget for &mut Categorizador {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let [header_area, main_area, footer_area] = Layout::vertical([
             Constraint::Length(2),
@@ -203,15 +128,14 @@ impl Widget for &mut App {
         let [list_area, item_area] =
             Layout::vertical([Constraint::Fill(1), Constraint::Fill(1)]).areas(main_area);
 
-        App::render_header(header_area, buf);
-        App::render_footer(footer_area, buf);
+        Categorizador::render_header(header_area, buf);
+        Categorizador::render_footer(footer_area, buf);
         self.render_list(list_area, buf);
         self.render_selected_item(item_area, buf);
     }
 }
 
-/// Rendering logic for the app
-impl App {
+impl Categorizador {
     fn render_header(area: Rect, buf: &mut Buffer) {
         Paragraph::new("Financeiro")
             .bold()
@@ -235,7 +159,6 @@ impl App {
 
         // Iterate through all elements in the `items` and stylize them.
         let items: Vec<ListItem> = self
-            .todo_list
             .items
             .iter()
             .enumerate()
@@ -254,17 +177,17 @@ impl App {
 
         // We need to disambiguate this trait method as both `Widget` and `StatefulWidget` share the
         // same method name `render`.
-        StatefulWidget::render(list, area, buf, &mut self.todo_list.state);
+        StatefulWidget::render(list, area, buf, &mut self.state);
     }
 
     fn render_selected_item(&self, area: Rect, buf: &mut Buffer) {
         // We get the info depending on the item's state.
-        let info = if let Some(i) = self.todo_list.state.selected() {
+        let info = if let Some(i) = self.state.selected() {
             let mut info: Vec<String> = Vec::new();
-            info.push(self.todo_list.items[i].regex.clone());
+            info.push(self.items[i].regex.clone());
             info.push("".to_string());
 
-            let mut itens = self.todo_list.items[i]
+            let mut itens = self.items[i]
                 .lancamentos
                 .clone()
                 .into_iter()

@@ -3,7 +3,7 @@ use std::fs::read_dir;
 use chrono::NaiveDate;
 use homedir::my_home;
 
-use crate::{file::arq_ler_windows_1252, lancamento::Lancamento};
+use crate::{dto::Lancamento, repository::arq_ler_windows_1252};
 
 impl Lancamento {
     pub fn from_ofx() -> Vec<Lancamento> {
