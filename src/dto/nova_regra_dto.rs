@@ -1,10 +1,10 @@
-use super::Lancamento;
+use super::{Categoria, Lancamento};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct NovaRegra {
     pub regex: String,
     pub lancamentos: Vec<Lancamento>,
-    pub categoria: Option<String>,
+    pub categoria: Option<Categoria>,
     pub info: String,
 }
 

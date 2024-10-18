@@ -3,14 +3,14 @@ use std::fs::read_dir;
 use chrono::NaiveDate;
 use homedir::my_home;
 
-use crate::{dto::Lancamento, repository::arq_ler_windows_1252};
+use crate::{dto::{DtoIdentificado, Lancamento}, repository::arq_ler_windows_1252};
 
 impl Lancamento {
     pub fn from_ofx() -> Vec<Lancamento> {
         let mut dir = my_home().unwrap().unwrap();
         dir.push("Downloads/importar");
 
-        println!("\n\nImportando XSD");
+        log::info!("Importando XSD");
         let mut resp: Vec<Lancamento> = Vec::new();
         read_dir(dir)
             .unwrap()
@@ -35,7 +35,6 @@ fn importar_lancts(lista: &mut Vec<Lancamento>, arquivo: &str) {
                 let chave = &linha[..pos - 1];
                 let valor = &linha[pos..linha.find('<').unwrap_or(linha.len())];
                 match chave {
-                    "FITID" => item.id = valor.to_string(),
                     "MEMO" => item.descricao = valor.to_string(),
                     "TRNAMT" => item.valor = valor.parse().unwrap(),
                     "DTPOSTED" => {
@@ -44,11 +43,12 @@ fn importar_lancts(lista: &mut Vec<Lancamento>, arquivo: &str) {
                     _ => {}
                 }
             } else if linha.eq("/STMTTRN>") {
+                item.gerar_id();
                 lista.push(item);
                 item = Lancamento::default();
                 count += 1;
             }
         }
     }
-    println!("arquivo: {}: {count} itens", arquivo.split('/').last().unwrap());
+    log::info!("arquivo: {}: {count} itens", arquivo.split('/').last().unwrap());
 }

@@ -1,10 +1,10 @@
 use crate::dto::{Lancamento, Regra};
 
-use super::regra::Buscar;
+use super::regra_repy::Buscar;
 
 impl Lancamento {
     pub fn categorizar(itens: Vec<Lancamento>) {
-        println!("\n\nCategorizar");
+        log::info!("Categorizar");
         let mut pendente = Lancamento::nao_categorizados_listar();
 
         itens.into_iter().for_each(|novo| {
@@ -13,7 +13,7 @@ impl Lancamento {
             }
         });
 
-        println!("Total a ser categorizados: {}", pendente.len());
+        log::info!("Total a ser categorizados: {}", pendente.len());
         encontrar_categoria(pendente);
     }
 }
@@ -36,4 +36,15 @@ fn encontrar_categoria(pendente: Vec<Lancamento>) {
     }
 
     Lancamento::nao_categorizados_salvar(&nao_encontrado);
+    adicionar_categorizados(encontrados);
+}
+
+fn adicionar_categorizados(novos: Vec<Lancamento>) {
+    let mut lancamentos = Lancamento::lancamentos_listar();
+    novos.into_iter().for_each(|novo| {
+        if !lancamentos.iter().any(|a| a.id == novo.id) {
+            lancamentos.push(novo);
+        }
+    });
+    Lancamento::lancamentos_salvar(&lancamentos);
 }

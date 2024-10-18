@@ -17,7 +17,9 @@ use ratatui::{
 };
 use std::collections::HashMap;
 
-use crate::dto::{Categoria, Lancamento, NovaRegra};
+use crate::dto::{Categoria, Categorias, Lancamento, NovaRegra, Regra};
+
+use super::SelecionarCategoria;
 
 const TODO_HEADER_STYLE: Style = Style::new().fg(SLATE.c100).bg(BLUE.c800);
 const NORMAL_ROW_BG: Color = SLATE.c950;
@@ -29,7 +31,7 @@ const COMPLETED_TEXT_FG_COLOR: Color = GREEN.c500;
 pub struct Categorizador {
     pub should_exit: bool,
     pub items: Vec<NovaRegra>,
-    pub categorias: Vec<Categoria>,
+    pub categorias: Categorias,
     pub state: ListState,
 }
 
@@ -56,7 +58,7 @@ impl Default for Categorizador {
             should_exit: false,
             items: itens,
             state: ListState::default(),
-            categorias: Categoria::listar()
+            categorias: Categoria::listar(),
         }
     }
 }
@@ -66,13 +68,13 @@ impl Categorizador {
         while !self.should_exit {
             terminal.draw(|frame| frame.render_widget(&mut self, frame.area()))?;
             if let Event::Key(key) = event::read()? {
-                self.handle_key(key);
+                self.handle_key(key, terminal);
             };
         }
         Ok(())
     }
 
-    pub fn handle_key(&mut self, key: KeyEvent) {
+    pub fn handle_key(&mut self, key: KeyEvent, terminal: &mut DefaultTerminal) {
         if key.kind != KeyEventKind::Press {
             return;
         }
@@ -81,7 +83,8 @@ impl Categorizador {
             KeyCode::Left => self.select_none(),
             KeyCode::Down => self.select_next(),
             KeyCode::Up => self.select_previous(),
-            KeyCode::Right | KeyCode::Enter => self.toggle_status(),
+            KeyCode::Right | KeyCode::Enter => self.toggle_status(terminal),
+            KeyCode::F(5) => self.atualizar(),
             _ => {}
         }
     }
@@ -97,22 +100,27 @@ impl Categorizador {
         self.state.select_previous();
     }
 
-    fn select_first(&mut self) {
-        self.state.select_first();
-    }
-
-    fn select_last(&mut self) {
-        self.state.select_last();
-    }
-
     /// Changes the status of the selected list item
-    fn toggle_status(&mut self) {
+    fn toggle_status(&mut self, terminal: &mut DefaultTerminal) {
         if let Some(i) = self.state.selected() {
-            self.items[i].categoria = match &self.items[i].categoria {
-                Some(_) => None,
-                None => Some("A Categoria entra aqui".to_string()),
-            }
+            let item = self.items[i].clone();
+            let select = SelecionarCategoria::new(
+                item.regex.clone(),
+                if item.lancamentos[0].valor > 0.0 {
+                    self.categorias.receitas.clone()
+                } else {
+                    self.categorias.despesas.clone()
+                },
+            );
+            let result = select.run(terminal).unwrap();
+
+            self.items[i].regex = result.descricao;
+            self.items[i].categoria = result.selecionado;
         }
+    }
+
+    fn atualizar(&mut self){
+        Regra::listar();
     }
 }
 
@@ -240,7 +248,7 @@ impl From<&NovaRegra> for ListItem<'_> {
                 TEXT_FG_COLOR,
             ),
             Some(_) => Line::styled(
-                format!(" ✓ {:02} - {}", value.lancamentos.len(), value.regex),
+                format!(" ✓ {:02} - {} ({})", value.lancamentos.len(), value.regex, value.categoria.clone().unwrap()),
                 COMPLETED_TEXT_FG_COLOR,
             ),
         };

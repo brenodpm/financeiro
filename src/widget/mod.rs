@@ -1,5 +1,5 @@
-mod categorizador;
-mod selecionar_categoria;
+mod categorizador_wgt;
+mod selecionar_categoria_wgt;
 
-pub use categorizador::Categorizador;
-pub use selecionar_categoria::SelecionarCategoria;
+pub use categorizador_wgt::Categorizador;
+pub use selecionar_categoria_wgt::SelecionarCategoria;

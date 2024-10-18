@@ -36,7 +36,7 @@ fn categorizar(&mut self, terminal: &mut DefaultTerminal) {
         match Categorizador::default().run(terminal) {
             Ok(_) => self.etapa = Etapa::Sair,
             Err(e) => {
-                println!("Falha ao categorizar: {e}");
+                log::info!("Falha ao categorizar: {e}");
             }
         }
     }
