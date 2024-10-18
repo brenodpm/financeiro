@@ -1,7 +1,5 @@
 use std::fmt::{self, Formatter, Result};
 
-use chrono::format::Item;
-
 use super::{gerar_sha1, DtoIdentificado, SubVec, TipoFluxo};
 
 #[derive(Debug, Clone, Eq, Ord, PartialEq, PartialOrd)]
@@ -9,11 +7,6 @@ pub struct Categoria {
     pub id: String,
     pub nome: String,
     pub tipo: TipoFluxo,
-}
-
-pub struct Categorias {
-    pub receitas: Vec<Categoria>,
-    pub despesas: Vec<Categoria>,
 }
 
 impl DtoIdentificado for Categoria {

@@ -6,7 +6,7 @@ mod regra_dto;
 mod tipo_despesa_dto;
 mod tipo_fluxo_dto;
 
-pub use catetogia_dto::{Categoria, Categorias};
+pub use catetogia_dto::Categoria;
 pub use grupo_despesa_dto::GrupoDespesa;
 use hex;
 pub use lancamento_dto::Lancamento;

@@ -17,7 +17,7 @@ use ratatui::{
 };
 use std::collections::HashMap;
 
-use crate::dto::{Categoria, Categorias, Lancamento, NovaRegra, Regra};
+use crate::dto::{Categoria, Lancamento, NovaRegra, Regra, TipoFluxo};
 
 use super::SelecionarCategoria;
 
@@ -31,7 +31,8 @@ const COMPLETED_TEXT_FG_COLOR: Color = GREEN.c500;
 pub struct Categorizador {
     pub should_exit: bool,
     pub items: Vec<NovaRegra>,
-    pub categorias: Categorias,
+    pub receitas: Vec<Categoria>,
+    pub despesas: Vec<Categoria>,
     pub state: ListState,
 }
 
@@ -54,11 +55,25 @@ impl Default for Categorizador {
 
         itens.sort_by(|a, b| b.lancamentos.len().cmp(&a.lancamentos.len()));
 
+        let mut receitas: Vec<Categoria> = Vec::new();
+        let mut despesas: Vec<Categoria> = Vec::new();
+
+        Categoria::listar().for_each(|c| match c.tipo.clone() {
+            TipoFluxo::Receita(_) => receitas.push(c),
+            TipoFluxo::Retorno => receitas.push(c),
+
+            TipoFluxo::Despesa(_) => despesas.push(c),
+            TipoFluxo::Investimento => despesas.push(c),
+
+            TipoFluxo::Vazio => {}
+        });
+
         Self {
             should_exit: false,
             items: itens,
             state: ListState::default(),
-            categorias: Categoria::listar(),
+            receitas: receitas,
+            despesas: despesas,
         }
     }
 }
@@ -107,9 +122,9 @@ impl Categorizador {
             let select = SelecionarCategoria::new(
                 item.regex.clone(),
                 if item.lancamentos[0].valor > 0.0 {
-                    self.categorias.receitas.clone()
+                    self.receitas.clone()
                 } else {
-                    self.categorias.despesas.clone()
+                    self.despesas.clone()
                 },
             );
             let result = select.run(terminal).unwrap();
@@ -119,7 +134,7 @@ impl Categorizador {
         }
     }
 
-    fn atualizar(&mut self){
+    fn atualizar(&mut self) {
         Regra::listar();
     }
 }
@@ -248,7 +263,12 @@ impl From<&NovaRegra> for ListItem<'_> {
                 TEXT_FG_COLOR,
             ),
             Some(_) => Line::styled(
-                format!(" ✓ {:02} - {} ({})", value.lancamentos.len(), value.regex, value.categoria.clone().unwrap()),
+                format!(
+                    " ✓ {:02} - {} ({})",
+                    value.lancamentos.len(),
+                    value.regex,
+                    value.categoria.clone().unwrap()
+                ),
                 COMPLETED_TEXT_FG_COLOR,
             ),
         };
