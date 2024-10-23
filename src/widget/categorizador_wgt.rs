@@ -87,6 +87,7 @@ impl Default for Categorizador {
 
 impl Categorizador {
     pub fn run(mut self, terminal: &mut DefaultTerminal) -> Result<()> {
+        self.state.select_first();
         while !self.should_exit {
             terminal.draw(|frame| frame.render_widget(&mut self, frame.area()))?;
             if let Event::Key(key) = event::read()? {
@@ -102,17 +103,12 @@ impl Categorizador {
         }
         match key.code {
             KeyCode::Esc => self.should_exit = true,
-            KeyCode::Left => self.select_none(),
             KeyCode::Down => self.select_next(),
             KeyCode::Up => self.select_previous(),
             KeyCode::Right | KeyCode::Enter => self.toggle_status(terminal),
             KeyCode::F(5) => self.atualizar(),
             _ => {}
         }
-    }
-
-    fn select_none(&mut self) {
-        self.state.select(None);
     }
 
     fn select_next(&mut self) {

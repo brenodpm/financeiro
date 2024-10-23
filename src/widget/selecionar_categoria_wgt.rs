@@ -167,7 +167,10 @@ impl SelecionarCategoria {
             KeyCode::Delete => self.deletar(),
             KeyCode::Home => self.inicio(),
             KeyCode::End => self.fim(),
-            KeyCode::Tab | KeyCode::Enter => self.status = Status::SelectCat,
+            KeyCode::Tab | KeyCode::Enter => {
+                self.state.select_first();
+                self.status = Status::SelectCat;
+            }
             KeyCode::Esc => self.status = Status::Sair,
             _ => {}
         }
@@ -179,7 +182,8 @@ impl SelecionarCategoria {
             KeyCode::Up => self.select_previous(),
             KeyCode::Enter | KeyCode::Right => self.selecionar_categoria(),
             KeyCode::Esc | KeyCode::BackTab | KeyCode::Tab | KeyCode::Left => {
-                self.status = Status::AltDesc
+                self.status = Status::AltDesc;
+                self.state.select(None);
             }
             _ => {}
         }
