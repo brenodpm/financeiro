@@ -7,6 +7,22 @@ pub struct GrupoDespesa {
     pub grupo: String,
     pub tipo: TipoDespesa,
 }
+impl GrupoDespesa{
+    #[inline]
+    pub fn to_line(&self) -> String {
+        let mut resp: Vec<String> = Vec::new();
+
+        resp.push(self.grupo.clone());
+        match self.tipo {
+            TipoDespesa::Fixa => resp.push("Fixa".to_string()),
+            TipoDespesa::Variavel => resp.push("Variavel".to_string()),
+            TipoDespesa::Perda => resp.push("Perda".to_string()),
+            TipoDespesa::Vazio => resp.push("".to_string()),
+        }
+
+        resp.join(";")
+    }
+}
 
 impl From<Vec<String>> for GrupoDespesa {
     #[inline]

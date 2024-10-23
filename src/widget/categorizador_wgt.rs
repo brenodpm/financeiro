@@ -58,15 +58,22 @@ impl Default for Categorizador {
         let mut receitas: Vec<Categoria> = Vec::new();
         let mut despesas: Vec<Categoria> = Vec::new();
 
-        Categoria::listar().for_each(|c| match c.tipo.clone() {
-            TipoFluxo::Receita(_) => receitas.push(c),
-            TipoFluxo::Retorno => receitas.push(c),
+        Categoria::listar()
+            .into_iter()
+            .for_each(|c| match c.tipo.clone() {
+                TipoFluxo::Receita(_) => receitas.push(c),
+                TipoFluxo::Retorno => receitas.push(c),
 
-            TipoFluxo::Despesa(_) => despesas.push(c),
-            TipoFluxo::Investimento => despesas.push(c),
+                TipoFluxo::Despesa(_) => despesas.push(c),
+                TipoFluxo::Investimento => despesas.push(c),
 
-            TipoFluxo::Vazio => {}
-        });
+                TipoFluxo::Transferencias => {
+                    despesas.push(c.clone());
+                    receitas.push(c);
+                }
+
+                TipoFluxo::Vazio => {}
+            });
 
         Self {
             should_exit: false,

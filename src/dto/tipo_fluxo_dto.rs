@@ -8,7 +8,38 @@ pub enum TipoFluxo {
     Despesa(GrupoDespesa),
     Investimento,
     Retorno,
+    Transferencias,
     Vazio,
+}
+
+impl TipoFluxo {
+    #[inline]
+    pub fn to_line(&self) -> String {
+        let mut resp: Vec<String> = Vec::new();
+
+        match self {
+            TipoFluxo::Receita(nome) => {
+                resp.push("Receita".to_string());
+                resp.push(nome.clone());
+            }
+            TipoFluxo::Despesa(grupo_despesa) => {
+                resp.push("Despesa".to_string());
+                resp.push(grupo_despesa.to_line());
+            }
+            TipoFluxo::Investimento => {
+                resp.push("Investimento".to_string());
+            }
+            TipoFluxo::Retorno => {
+                resp.push("Retorno".to_string());
+            }
+            TipoFluxo::Transferencias => {
+                resp.push("Transferencias".to_string());
+            }
+            TipoFluxo::Vazio => {}
+        }
+
+        resp.join(";")
+    }
 }
 
 impl From<Vec<String>> for TipoFluxo {
@@ -19,6 +50,7 @@ impl From<Vec<String>> for TipoFluxo {
             "Despesa" => TipoFluxo::Despesa(GrupoDespesa::from(value.sub_vec())),
             "Investimento" => TipoFluxo::Investimento,
             "Retorno" => TipoFluxo::Retorno,
+            "Transferencias" => TipoFluxo::Transferencias,
             _ => TipoFluxo::Vazio,
         }
     }
@@ -30,6 +62,7 @@ impl Display for TipoFluxo {
             Self::Receita(nome) => f.write_fmt(format_args!("Receita: {nome} -")),
             Self::Despesa(grp) => f.write_fmt(format_args!("Despesa {grp} -")),
             Self::Investimento => f.write_str("Investimento: "),
+            Self::Transferencias => f.write_str("Transferencias: "),
             Self::Retorno => f.write_str("Retorno: "),
             Self::Vazio => f.write_str("????: "),
         }
