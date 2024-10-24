@@ -1,6 +1,6 @@
 use chrono::NaiveDate;
 
-use super::{gerar_sha1, Categoria, DtoIdentificado};
+use super::{gerar_sha1, DtoIdentificado};
 
 #[derive(Debug, Clone, Default)]
 pub struct Lancamento {
@@ -8,38 +8,28 @@ pub struct Lancamento {
     pub descricao: String,
     pub valor: f64,
     pub data: NaiveDate,
-    pub categoria: Option<Categoria>,
+    pub categoria: Option<String>,
 }
 
 impl Lancamento {
-    fn new(descricao: String, valor: f64, data: NaiveDate) -> Lancamento {
-        let mut resp = Self {
-            id: String::new(),
-            descricao: descricao,
-            valor: valor,
-            data: data,
-            categoria: None,
-        };
-        resp.gerar_id();
-        resp
-    }
-
-    
-
-    pub fn to_string(&self) -> String {
+    pub fn to_line(&self) -> String {
         let mut resp: Vec<String> = Vec::new();
 
         resp.push(self.id.clone());
         resp.push(self.descricao.clone());
         resp.push(self.valor.to_string());
         resp.push(self.data.format("%Y-%m-%d").to_string());
+        resp.push(match self.categoria.clone() {
+            Some(c) => c,
+            None => String::new(),
+        });
 
         resp.join(";")
     }
 }
 
 impl DtoIdentificado for Lancamento {
-    fn gerar_id(&mut self){
+    fn gerar_id(&mut self) {
         let mut itens: Vec<String> = Vec::new();
 
         itens.push(self.descricao.clone());

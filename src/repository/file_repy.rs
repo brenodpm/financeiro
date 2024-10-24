@@ -3,21 +3,20 @@ use std::{
     io::{BufRead, BufReader, Lines, Read}, iter::Flatten, path::{Path, PathBuf},
 };
 
-use encoding_rs::WINDOWS_1252;
-use encoding_rs_io::DecodeReaderBytesBuilder;
+use encoding_rs::Encoding;
+use chardet::detect;
 use homedir::my_home;
 
-pub fn arq_ler_windows_1252(arquivo: &str) -> Vec<String> {
-    let file = File::open(arquivo).expect("Falha ao abrir o arquivo");
-    let mut rdr = DecodeReaderBytesBuilder::new()
-        .encoding(Some(WINDOWS_1252))
-        .build(file);
+pub fn arq_externo_ler(arquivo: &str) -> Vec<String> {
+    let mut file = File::open(arquivo).expect("Failed to open file");
+    let mut buffer = Vec::new();
+    file.read_to_end(&mut buffer).expect("Failed to read file");
 
-    let mut text = String::new();
-    rdr.read_to_string(&mut text)
-        .expect("Falha ao ler o arquivo");
+    let (encoding_name,_, _) = detect(&buffer);
+    let encoding = Encoding::for_label(encoding_name.as_bytes()).expect("Failed to get encoding");
 
-    text.lines().map(|s| s.trim().replace(";", ",")).collect()
+    let (cow, _, _) = encoding.decode(&buffer);
+    cow.to_string().lines().map(|s| s.trim().replace(";", ",")).collect()
 }
 
 pub fn arq_ler(dir: &str, file: &str) -> Flatten<Lines<BufReader<File>>> {

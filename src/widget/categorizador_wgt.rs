@@ -38,23 +38,6 @@ pub struct Categorizador {
 
 impl Default for Categorizador {
     fn default() -> Self {
-        let mut mapa: HashMap<String, Vec<Lancamento>> = HashMap::new();
-
-        Lancamento::nao_categorizados_listar()
-            .into_iter()
-            .for_each(|l| {
-                mapa.entry(l.descricao.clone())
-                    .or_insert_with(Vec::new)
-                    .push(l);
-            });
-
-        let mut itens: Vec<NovaRegra> = mapa
-            .into_iter()
-            .map(|(nome, notas)| NovaRegra::new(nome, notas))
-            .collect();
-
-        itens.sort_by(|a, b| b.lancamentos.len().cmp(&a.lancamentos.len()));
-
         let mut receitas: Vec<Categoria> = Vec::new();
         let mut despesas: Vec<Categoria> = Vec::new();
 
@@ -77,7 +60,7 @@ impl Default for Categorizador {
 
         Self {
             should_exit: false,
-            items: itens,
+            items: buscar_itens(),
             state: ListState::default(),
             receitas: receitas,
             despesas: despesas,
@@ -85,10 +68,30 @@ impl Default for Categorizador {
     }
 }
 
+fn buscar_itens() -> Vec<NovaRegra> {
+    let mut mapa: HashMap<String, Vec<Lancamento>> = HashMap::new();
+
+    Lancamento::nao_categorizados_listar()
+        .into_iter()
+        .for_each(|l| {
+            mapa.entry(l.descricao.clone())
+                .or_insert_with(Vec::new)
+                .push(l);
+        });
+
+    let mut itens: Vec<NovaRegra> = mapa
+        .into_iter()
+        .map(|(nome, notas)| NovaRegra::new(nome, notas))
+        .collect();
+
+    itens.sort_by(|a, b| b.lancamentos.len().cmp(&a.lancamentos.len()));
+
+    itens
+}
 impl Categorizador {
     pub fn run(mut self, terminal: &mut DefaultTerminal) -> Result<()> {
         self.state.select_first();
-        while !self.should_exit {
+        while !self.should_exit && self.items.len() > 0 {
             terminal.draw(|frame| frame.render_widget(&mut self, frame.area()))?;
             if let Event::Key(key) = event::read()? {
                 self.handle_key(key, terminal);
@@ -106,7 +109,7 @@ impl Categorizador {
             KeyCode::Down => self.select_next(),
             KeyCode::Up => self.select_previous(),
             KeyCode::Right | KeyCode::Enter => self.toggle_status(terminal),
-            KeyCode::F(5) => self.atualizar(),
+            KeyCode::Insert => self.atualizar(),
             _ => {}
         }
     }
@@ -138,7 +141,22 @@ impl Categorizador {
     }
 
     fn atualizar(&mut self) {
-        Regra::listar();
+        let mut regras: Vec<Regra> = Vec::new();
+
+        self.items
+            .clone()
+            .into_iter()
+            .for_each(|nr| match nr.categoria {
+                Some(cat) => regras.push(Regra {
+                    regex: nr.regex,
+                    categoria: cat.id,
+                }),
+                None => {}
+            });
+
+        Regra::adicionar(&mut regras);
+        Lancamento::recategorizar();
+        self.items = buscar_itens();
     }
 }
 

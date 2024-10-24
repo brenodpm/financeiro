@@ -3,8 +3,7 @@ use std::fs::read_dir;
 use chrono::NaiveDate;
 use homedir::my_home;
 
-use crate::{dto::{DtoIdentificado, Lancamento}, repository::arq_ler_windows_1252};
-
+use crate::{dto::{DtoIdentificado, Lancamento}, repository::file_repy::arq_externo_ler};
 impl Lancamento {
     pub fn from_ofx() -> Vec<Lancamento> {
         let mut dir = my_home().unwrap().unwrap();
@@ -28,7 +27,7 @@ fn importar_lancts(lista: &mut Vec<Lancamento>, arquivo: &str) {
     let mut item = Lancamento::default();
     let mut count: u32 = 0;
 
-    for mut linha in arq_ler_windows_1252(arquivo) {
+    for mut linha in arq_externo_ler(arquivo) {
         if let Some(pos) = linha.find('>') {
             linha = linha[1..].to_string();
             if pos + 1 < linha.len() {

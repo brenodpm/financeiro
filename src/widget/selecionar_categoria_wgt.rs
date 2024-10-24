@@ -1,15 +1,14 @@
-use color_eyre::{owo_colors::OwoColorize, Result};
+use color_eyre::Result;
 use ratatui::{
     buffer::Buffer,
-    crossterm::{
-        event::{self, Event, KeyCode, KeyEvent, KeyEventKind},
-        style,
-    },
+    crossterm::
+        event::{self, Event, KeyCode, KeyEvent, KeyEventKind}
+    ,
     layout::{Constraint, Layout, Rect},
     style::{
         palette::{
             material::WHITE,
-            tailwind::{BLUE, GREEN, SLATE},
+            tailwind::{BLUE, SLATE},
         },
         Color, Modifier, Style, Stylize,
     },
@@ -29,7 +28,7 @@ const NORMAL_ROW_BG: Color = SLATE.c950;
 const ALT_ROW_BG_COLOR: Color = SLATE.c900;
 const SELECTED_STYLE: Style = Style::new().bg(SLATE.c800).add_modifier(Modifier::BOLD);
 const TEXT_FG_COLOR: Color = SLATE.c200;
-const COMPLETED_TEXT_FG_COLOR: Color = GREEN.c500;
+
 
 #[derive(PartialEq)]
 enum Status {
@@ -141,13 +140,13 @@ impl SelecionarCategoria {
         while !self.sair() {
             terminal.draw(|frame| frame.render_widget(&mut self, frame.area()))?;
             if let Event::Key(key) = event::read()? {
-                self.handle_key(key, terminal);
+                self.handle_key(key);
             };
         }
         Ok(self)
     }
 
-    fn handle_key(&mut self, key: KeyEvent, terminal: &mut DefaultTerminal) {
+    fn handle_key(&mut self, key: KeyEvent) {
         if key.kind != KeyEventKind::Press {
             return;
         }

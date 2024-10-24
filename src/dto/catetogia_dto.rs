@@ -1,4 +1,4 @@
-use std::{fmt::{self, Formatter, Result}, vec::IntoIter};
+use std::fmt::{self, Formatter, Result};
 
 use super::{gerar_sha1, DtoIdentificado, SubVec, TipoFluxo};
 

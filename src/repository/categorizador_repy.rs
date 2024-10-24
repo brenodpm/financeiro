@@ -3,6 +3,10 @@ use crate::dto::{Lancamento, Regra};
 use super::regra_repy::Buscar;
 
 impl Lancamento {
+    pub fn recategorizar() {
+        Lancamento::categorizar(Vec::new());
+    }
+
     pub fn categorizar(itens: Vec<Lancamento>) {
         log::info!("Categorizar");
         let mut pendente = Lancamento::nao_categorizados_listar();

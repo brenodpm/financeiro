@@ -15,7 +15,7 @@ impl Lancamento {
         arq_escrever(
             FIN,
             NAO_CAT,
-            &itens.into_iter().map(|i| i.to_string()).collect(),
+            &itens.into_iter().map(|i| i.to_line()).collect(),
         )
     }
 
@@ -27,7 +27,7 @@ impl Lancamento {
         arq_escrever(
             FIN,
             LANCAMENTOS,
-            &itens.into_iter().map(|i| i.to_string()).collect(),
+            &itens.into_iter().map(|i| i.to_line()).collect(),
         )
     }
 }
