@@ -25,10 +25,16 @@ impl Regra {
     pub fn adicionar(regras: &mut Vec<Regra>) {
         let mut atuais = Regra::listar();
         atuais.append(regras);
+
+        atuais.sort_by(|a, b| b.regex.len().cmp(&a.regex.len()));
+
         arq_escrever(
             FIN,
             REGRAS,
-            &atuais.into_iter().map(|r| r.to_line()).collect(),
+            &atuais
+            .into_iter()
+            .map(|r| r.to_line())
+            .collect(),
         );
     }
 }

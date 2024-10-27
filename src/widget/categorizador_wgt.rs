@@ -69,20 +69,36 @@ impl Default for Categorizador {
 }
 
 fn buscar_itens() -> Vec<NovaRegra> {
-    let mut mapa: HashMap<String, Vec<Lancamento>> = HashMap::new();
+    let mut entradas: HashMap<String, Vec<Lancamento>> = HashMap::new();
+    let mut saidas: HashMap<String, Vec<Lancamento>> = HashMap::new();
 
     Lancamento::nao_categorizados_listar()
         .into_iter()
         .for_each(|l| {
-            mapa.entry(l.descricao.clone())
-                .or_insert_with(Vec::new)
-                .push(l);
+            if l.valor > 0.0 {
+                entradas
+                    .entry(l.descricao.clone())
+                    .or_insert_with(Vec::new)
+                    .push(l);
+            } else {
+                saidas
+                    .entry(l.descricao.clone())
+                    .or_insert_with(Vec::new)
+                    .push(l);
+            }
         });
 
-    let mut itens: Vec<NovaRegra> = mapa
+    let mut itens: Vec<NovaRegra> = entradas
         .into_iter()
-        .map(|(nome, notas)| NovaRegra::new(nome, notas))
+        .map(|(nome, notas)| NovaRegra::new(nome, '▲', notas))
         .collect();
+
+    itens.append(
+        &mut saidas
+            .into_iter()
+            .map(|(nome, notas)| NovaRegra::new(nome, '▼', notas))
+            .collect(),
+    );
 
     itens.sort_by(|a, b| b.lancamentos.len().cmp(&a.lancamentos.len()));
 
@@ -216,7 +232,7 @@ impl Categorizador {
         let list = List::new(items)
             .block(block)
             .highlight_style(SELECTED_STYLE)
-            .highlight_symbol(">")
+            .highlight_symbol("▶")
             .highlight_spacing(HighlightSpacing::Always);
 
         // We need to disambiguate this trait method as both `Widget` and `StatefulWidget` share the
@@ -280,13 +296,14 @@ impl From<&NovaRegra> for ListItem<'_> {
     fn from(value: &NovaRegra) -> Self {
         let line = match &value.categoria {
             None => Line::styled(
-                format!(" ☐ {:02} - {}", value.lancamentos.len(), value.regex),
+                format!(" ☐ {:02}{} - {}", value.lancamentos.len(), value.fluxo, value.regex),
                 TEXT_FG_COLOR,
             ),
             Some(_) => Line::styled(
                 format!(
-                    " ✓ {:02} - {} ({})",
+                    " ✓ {:02}{} - {} ({})",
                     value.lancamentos.len(),
+                    value.fluxo,
                     value.regex,
                     value.categoria.clone().unwrap()
                 ),

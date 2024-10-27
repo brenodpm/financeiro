@@ -12,7 +12,7 @@ impl Categoria {
         let mut resp: Vec<Categoria> = arq_ler(FIN, CAT)
             .map(Categoria::from)
             .into_iter()
-            .sorted_by(|a, b| a.partial_cmp(b).unwrap())
+            .sorted_by(|a, b| a.to_string().partial_cmp(&b.to_string()).unwrap())
             .collect();
 
         if resp.len() == 0usize {

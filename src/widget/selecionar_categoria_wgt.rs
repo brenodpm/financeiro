@@ -1,9 +1,7 @@
 use color_eyre::Result;
 use ratatui::{
     buffer::Buffer,
-    crossterm::
-        event::{self, Event, KeyCode, KeyEvent, KeyEventKind}
-    ,
+    crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind},
     layout::{Constraint, Layout, Rect},
     style::{
         palette::{
@@ -13,7 +11,7 @@ use ratatui::{
         Color, Modifier, Style, Stylize,
     },
     symbols,
-    text::{Line, Text},
+    text::{Line, Span, Text},
     widgets::{
         Block, Borders, HighlightSpacing, List, ListItem, ListState, Padding, Paragraph,
         StatefulWidget, Widget, Wrap,
@@ -29,7 +27,6 @@ const ALT_ROW_BG_COLOR: Color = SLATE.c900;
 const SELECTED_STYLE: Style = Style::new().bg(SLATE.c800).add_modifier(Modifier::BOLD);
 const TEXT_FG_COLOR: Color = SLATE.c200;
 
-
 #[derive(PartialEq)]
 enum Status {
     AltDesc,
@@ -39,16 +36,19 @@ enum Status {
 
 pub struct SelecionarCategoria {
     pub descricao: String,
+    pub selecionado: Option<Categoria>,
+
+    texto_original: String,
     categorias: Vec<Categoria>,
     status: Status,
     character_index: usize,
     state: ListState,
-    pub selecionado: Option<Categoria>,
 }
 
 impl SelecionarCategoria {
     pub fn new(descricao: String, categorias: Vec<Categoria>) -> Self {
         Self {
+            texto_original: descricao.clone(),
             descricao,
             categorias,
             status: Status::AltDesc,
@@ -62,18 +62,24 @@ impl SelecionarCategoria {
         self.status == Status::Sair
     }
 
-    fn clamp_cursor(&self, new_cursor_pos: usize) -> usize {
-        new_cursor_pos.clamp(0, self.descricao.chars().count())
+    fn byte_index(&self) -> usize {
+        self.descricao
+            .chars()
+            .take(self.character_index)
+            .map(|c| c.len_utf8())
+            .sum()
     }
 
     fn para_esquerda(&mut self) {
-        let cursor_moved_left = self.character_index.saturating_sub(1);
-        self.character_index = self.clamp_cursor(cursor_moved_left);
+        if self.character_index > 0 {
+            self.character_index -= 1;
+        }
     }
 
     fn para_direita(&mut self) {
-        let cursor_moved_right = self.character_index.saturating_add(1);
-        self.character_index = self.clamp_cursor(cursor_moved_right);
+        if self.character_index < self.descricao.chars().count() {
+            self.character_index += 1;
+        }
     }
 
     fn digitar(&mut self, letra: char) {
@@ -83,40 +89,26 @@ impl SelecionarCategoria {
     }
 
     fn apagar(&mut self) {
-        let is_not_cursor_leftmost = self.character_index != 0;
-        if is_not_cursor_leftmost {
-            let current_index = self.character_index;
-            let from_left_to_current_index = current_index - 1;
-
-            let before_char_to_delete = self.descricao.chars().take(from_left_to_current_index);
-            let after_char_to_delete = self.descricao.chars().skip(current_index);
-
-            self.descricao = before_char_to_delete.chain(after_char_to_delete).collect();
+        if self.character_index > 0 {
+            let index = self.byte_index();
+            self.descricao.remove(index);
             self.para_esquerda();
         }
     }
 
     fn deletar(&mut self) {
-        if self.descricao.chars().count() > self.character_index {
-            self.para_direita();
-            self.apagar();
+        if self.character_index < self.descricao.chars().count() {
+            let index = self.byte_index();
+            self.descricao.remove(index);
         }
     }
 
-    fn byte_index(&self) -> usize {
-        self.descricao
-            .char_indices()
-            .map(|(i, _)| i)
-            .nth(self.character_index)
-            .unwrap_or(self.descricao.len())
-    }
-
     fn inicio(&mut self) {
-        self.character_index = self.clamp_cursor(0 as usize);
+        self.character_index = 0;
     }
 
     fn fim(&mut self) {
-        self.character_index = self.clamp_cursor(self.descricao.chars().count());
+        self.character_index = self.descricao.chars().count();
     }
 
     fn select_next(&mut self) {
@@ -166,11 +158,17 @@ impl SelecionarCategoria {
             KeyCode::Delete => self.deletar(),
             KeyCode::Home => self.inicio(),
             KeyCode::End => self.fim(),
-            KeyCode::Tab | KeyCode::Enter => {
+            KeyCode::Tab | KeyCode::Enter | KeyCode::Down => {
                 self.state.select_first();
                 self.status = Status::SelectCat;
             }
-            KeyCode::Esc => self.status = Status::Sair,
+            KeyCode::Esc => {
+                if self.descricao != self.texto_original {
+                    self.descricao = self.texto_original.clone();
+                } else {
+                    self.status = Status::Sair
+                }
+            }
             _ => {}
         }
     }
@@ -228,6 +226,12 @@ impl SelecionarCategoria {
     }
 
     fn render_regex(&mut self, area: Rect, buf: &mut Buffer) {
+        let mut text = self.descricao.clone();
+        text.push_str(" ");
+
+        let mut chars = text.chars();
+        let mut spans = Vec::new();
+
         let mut block = Block::new()
             .title(Line::raw("Regex").centered())
             .borders(Borders::all())
@@ -238,21 +242,21 @@ impl SelecionarCategoria {
             block = block.style(SELECTED_STYLE);
         }
 
-        let mut txt = self.descricao.clone();
-        txt.push_str(" ");
+        for (i, c) in chars.by_ref().enumerate() {
+            if i == self.character_index {
+                spans.push(Span::styled(
+                    c.to_string(),
+                    Style::default()
+                        .fg(SLATE.c950)
+                        .bg(WHITE)
+                        .add_modifier(Modifier::BOLD),
+                ));
+            } else {
+                spans.push(Span::styled(c.to_string(), Style::default().fg(WHITE)));
+            }
+        }
 
-        let i = self.character_index;
-        let msg = vec![
-            txt[..i].into(),
-            txt.chars().collect::<Vec<char>>()[i]
-                .to_string()
-                .bg(WHITE)
-                .fg(SLATE.c950),
-            txt[i + 1..].into(),
-        ];
-        let text = Text::from(Line::from(msg));
-
-        Paragraph::new(text)
+        Paragraph::new(Text::from(Line::from(spans)))
             .block(block)
             .fg(TEXT_FG_COLOR)
             .wrap(Wrap { trim: false })
@@ -280,7 +284,7 @@ impl SelecionarCategoria {
         let list = List::new(items)
             .block(block)
             .highlight_style(SELECTED_STYLE)
-            .highlight_symbol(">")
+            .highlight_symbol("▶")
             .highlight_spacing(HighlightSpacing::Always);
 
         StatefulWidget::render(list, area, buf, &mut self.state);

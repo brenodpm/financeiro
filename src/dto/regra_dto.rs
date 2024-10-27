@@ -1,4 +1,5 @@
 
+#[derive(Debug)]
 pub struct Regra {
     pub regex: String,
     pub categoria: String,

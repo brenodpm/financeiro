@@ -83,7 +83,6 @@ impl Categoria {
         despesa(&mut resp, "Cartão de crédito", "Transações", "Variavel");
         despesa(&mut resp, "Doações", "Transações", "Variavel");
         despesa(&mut resp, "Saques", "Transações", "Variavel");
-        despesa(&mut resp, "Transferências", "Transações", "Variavel");
         despesa(&mut resp, "Combustível", "Transporte", "Variavel");
         despesa(&mut resp, "Estacionamentos", "Transporte", "Variavel");
         despesa(&mut resp, "Manutenção veicular", "Transporte", "Variavel");
@@ -117,8 +116,13 @@ impl Categoria {
         receita(&mut resp, "Férias", "Trabalho");
         
         retorno(&mut resp, "Cashback");
+        retorno(&mut resp, "Poupança");
+        retorno(&mut resp, "Restituição");
+        retorno(&mut resp, "Ações");
+        retorno(&mut resp, "Grupo de investimento");
 
         investimento(&mut resp, "Poupança");
+        investimento(&mut resp, "Ações");
         investimento(&mut resp, "Grupo de investimento");
 
         transferencias(&mut resp, "Transferência entre contas");

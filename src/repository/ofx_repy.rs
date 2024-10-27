@@ -1,9 +1,12 @@
-use std::fs::read_dir;
+use std::fs::{read_dir, rename};
 
 use chrono::NaiveDate;
 use homedir::my_home;
 
-use crate::{dto::{DtoIdentificado, Lancamento}, repository::file_repy::arq_externo_ler};
+use crate::{
+    dto::{DtoIdentificado, Lancamento},
+    repository::file_repy::arq_externo_ler,
+};
 impl Lancamento {
     pub fn from_ofx() -> Vec<Lancamento> {
         let mut dir = my_home().unwrap().unwrap();
@@ -49,5 +52,15 @@ fn importar_lancts(lista: &mut Vec<Lancamento>, arquivo: &str) {
             }
         }
     }
-    log::info!("arquivo: {}: {count} itens", arquivo.split('/').last().unwrap());
+    log::info!(
+        "arquivo: {}: {count} itens",
+        arquivo.split('/').last().unwrap()
+    );
+
+    mover_para_importado(&arquivo);
+}
+
+fn mover_para_importado(arquivo: &str) {
+    let novo = arquivo.to_string().replace("importar", "importado");
+    rename(arquivo, novo).expect("Erro ao mover");
 }
