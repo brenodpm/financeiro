@@ -6,7 +6,7 @@ use ratatui::{
     style::{
         palette::{
             material::WHITE,
-            tailwind::{BLUE, SLATE},
+            tailwind::{BLUE, GREEN, SLATE},
         },
         Color, Modifier, Style, Stylize,
     },
@@ -58,6 +58,10 @@ impl SelecionarCategoria {
         }
     }
 
+    fn modificado(&self) -> bool {
+        self.descricao != self.texto_original
+    }
+
     fn sair(&self) -> bool {
         self.status == Status::Sair
     }
@@ -91,7 +95,7 @@ impl SelecionarCategoria {
     fn apagar(&mut self) {
         if self.character_index > 0 {
             let index = self.byte_index();
-            self.descricao.remove(index);
+            self.descricao.remove(index - 1);
             self.para_esquerda();
         }
     }
@@ -163,7 +167,7 @@ impl SelecionarCategoria {
                 self.status = Status::SelectCat;
             }
             KeyCode::Esc => {
-                if self.descricao != self.texto_original {
+                if self.modificado() {
                     self.descricao = self.texto_original.clone();
                 } else {
                     self.status = Status::Sair
@@ -226,34 +230,43 @@ impl SelecionarCategoria {
     }
 
     fn render_regex(&mut self, area: Rect, buf: &mut Buffer) {
-        let mut text = self.descricao.clone();
-        text.push_str(" ");
-
-        let mut chars = text.chars();
-        let mut spans = Vec::new();
-
-        let mut block = Block::new()
+        let block = Block::new()
             .title(Line::raw("Regex").centered())
             .borders(Borders::all())
             .border_set(symbols::border::PLAIN)
-            .padding(Padding::horizontal(1));
+            .padding(Padding::horizontal(1))
+            .style(match self.status {
+                Status::AltDesc => SELECTED_STYLE,
+                _ => Style::new(),
+            });
+
+        let mut text = self.descricao.clone();
+        text.push_str(" ");
+        let mut spans = Vec::new();
+
+        let fg: Color = if self.modificado() {
+            GREEN.c500
+        } else {
+            TEXT_FG_COLOR
+        };
 
         if self.status == Status::AltDesc {
-            block = block.style(SELECTED_STYLE);
-        }
-
-        for (i, c) in chars.by_ref().enumerate() {
-            if i == self.character_index {
-                spans.push(Span::styled(
-                    c.to_string(),
-                    Style::default()
-                        .fg(SLATE.c950)
-                        .bg(WHITE)
-                        .add_modifier(Modifier::BOLD),
-                ));
-            } else {
-                spans.push(Span::styled(c.to_string(), Style::default().fg(WHITE)));
+            let mut chars = text.chars();
+            for (i, c) in chars.by_ref().enumerate() {
+                if i == self.character_index {
+                    spans.push(Span::styled(
+                        c.to_string(),
+                        Style::default()
+                            .fg(fg)
+                            .bg(WHITE)
+                            .add_modifier(Modifier::BOLD),
+                    ));
+                } else {
+                    spans.push(Span::styled(c.to_string(), Style::default().fg(fg)));
+                }
             }
+        } else {
+            spans.push(Span::styled(text, Style::default().fg(fg)));
         }
 
         Paragraph::new(Text::from(Line::from(spans)))

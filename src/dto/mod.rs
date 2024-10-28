@@ -5,6 +5,7 @@ mod nova_regra_dto;
 mod regra_dto;
 mod tipo_despesa_dto;
 mod tipo_fluxo_dto;
+mod fluxo_regra_dto;
 
 pub use catetogia_dto::Categoria;
 pub use grupo_despesa_dto::GrupoDespesa;
@@ -15,6 +16,7 @@ pub use regra_dto::Regra;
 use sha1::{Digest, Sha1};
 pub use tipo_despesa_dto::TipoDespesa;
 pub use tipo_fluxo_dto::TipoFluxo;
+pub use fluxo_regra_dto::FluxoRegra;
 
 fn gerar_sha1(valor: String) -> String {
     let mut hasher = Sha1::new();

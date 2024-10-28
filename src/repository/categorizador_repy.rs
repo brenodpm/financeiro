@@ -1,4 +1,4 @@
-use crate::dto::{Lancamento, Regra};
+use crate::dto::{FluxoRegra, Lancamento, Regra};
 
 use super::regra_repy::Buscar;
 
@@ -28,7 +28,14 @@ fn encontrar_categoria(pendente: Vec<Lancamento>) {
     let mut nao_encontrado: Vec<Lancamento> = Vec::new();
 
     for mut item in pendente {
-        match &regras.buscar(&item.descricao) {
+        match &regras.buscar(
+            &item.descricao.to_lowercase(),
+            if item.valor > 0.0 {
+                FluxoRegra::Entrada
+            } else {
+                FluxoRegra::Saida
+            },
+        ) {
             Some(c) => {
                 item.categoria = Some(c.clone());
                 encontrados.push(item);

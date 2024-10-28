@@ -1,4 +1,4 @@
-use crate::dto::Regra;
+use crate::dto::{FluxoRegra, Regra};
 
 use super::file_repy::{arq_escrever, arq_ler};
 
@@ -6,13 +6,13 @@ const FIN: &str = "financeiro";
 const REGRAS: &str = "regras.csv";
 
 pub trait Buscar {
-    fn buscar(&self, descricao: &String) -> Option<String>;
+    fn buscar(&self, descricao: &String, fluxo: FluxoRegra) -> Option<String>;
 }
 
 impl Buscar for Vec<Regra> {
-    fn buscar(&self, descricao: &String) -> Option<String> {
+    fn buscar(&self, descricao: &String, fluxo: FluxoRegra) -> Option<String> {
         self.into_iter()
-            .find(|item| descricao.contains(&item.regex))
+            .find(|item| item.fluxo == fluxo && descricao.contains(&item.regex))
             .map(|item| item.categoria.clone())
     }
 }

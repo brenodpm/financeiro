@@ -17,7 +17,7 @@ use ratatui::{
 };
 use std::collections::HashMap;
 
-use crate::dto::{Categoria, Lancamento, NovaRegra, Regra, TipoFluxo};
+use crate::dto::{Categoria, FluxoRegra, Lancamento, NovaRegra, Regra, TipoFluxo};
 
 use super::SelecionarCategoria;
 
@@ -90,13 +90,13 @@ fn buscar_itens() -> Vec<NovaRegra> {
 
     let mut itens: Vec<NovaRegra> = entradas
         .into_iter()
-        .map(|(nome, notas)| NovaRegra::new(nome, '▲', notas))
+        .map(|(nome, notas)| NovaRegra::new(nome, FluxoRegra::Entrada, notas))
         .collect();
 
     itens.append(
         &mut saidas
             .into_iter()
-            .map(|(nome, notas)| NovaRegra::new(nome, '▼', notas))
+            .map(|(nome, notas)| NovaRegra::new(nome, FluxoRegra::Saida, notas))
             .collect(),
     );
 
@@ -142,7 +142,7 @@ impl Categorizador {
         if let Some(i) = self.state.selected() {
             let item = self.items[i].clone();
             let select = SelecionarCategoria::new(
-                item.regex.clone(),
+                item.texto.clone(),
                 if item.lancamentos[0].valor > 0.0 {
                     self.receitas.clone()
                 } else {
@@ -165,6 +165,7 @@ impl Categorizador {
             .for_each(|nr| match nr.categoria {
                 Some(cat) => regras.push(Regra {
                     regex: nr.regex,
+                    fluxo: nr.fluxo,
                     categoria: cat.id,
                 }),
                 None => {}
@@ -204,7 +205,7 @@ impl Categorizador {
     }
 
     fn render_footer(area: Rect, buf: &mut Buffer) {
-        Paragraph::new("Use ↓↑ to move, ← to unselect, → to change status, g/G to go top/bottom.")
+        Paragraph::new("Use ↓↑ mover, → selecionar categoria, INSERT categorizar, ESC sair")
             .centered()
             .render(area, buf);
     }
@@ -244,7 +245,8 @@ impl Categorizador {
         // We get the info depending on the item's state.
         let info = if let Some(i) = self.state.selected() {
             let mut info: Vec<String> = Vec::new();
-            info.push(self.items[i].regex.clone());
+
+            info.push(self.items[i].texto.clone());
             info.push("".to_string());
 
             let mut itens = self.items[i]
@@ -294,16 +296,27 @@ const fn alternate_colors(i: usize) -> Color {
 
 impl From<&NovaRegra> for ListItem<'_> {
     fn from(value: &NovaRegra) -> Self {
+        let fluxo = match value.fluxo {
+            FluxoRegra::Entrada => '▲',
+            FluxoRegra::Saida => '▼',
+            FluxoRegra::None => '_',
+        };
+
         let line = match &value.categoria {
             None => Line::styled(
-                format!(" ☐ {:02}{} - {}", value.lancamentos.len(), value.fluxo, value.regex),
+                format!(
+                    " ☐ {:02} {} - {}",
+                    value.lancamentos.len(),
+                    fluxo,
+                    value.regex
+                ),
                 TEXT_FG_COLOR,
             ),
             Some(_) => Line::styled(
                 format!(
-                    " ✓ {:02}{} - {} ({})",
+                    " ✓ {:02} {} - {} ({})",
                     value.lancamentos.len(),
-                    value.fluxo,
+                    fluxo,
                     value.regex,
                     value.categoria.clone().unwrap()
                 ),
