@@ -60,8 +60,8 @@ impl CSV for TipoFluxo {
 impl Display for TipoFluxo {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
-            Self::Receita(nome) => f.write_fmt(format_args!("Receita: {nome} -")),
-            Self::Despesa(grp) => f.write_fmt(format_args!("Despesa {grp} -")),
+            Self::Receita(nome) => f.write_fmt(format_args!("Receita: {nome} - ")),
+            Self::Despesa(grp) => f.write_fmt(format_args!("Despesa {grp} - ")),
             Self::Investimento => f.write_str("Investimento: "),
             Self::Transferencias => f.write_str("Transferencias: "),
             Self::Retorno => f.write_str("Retorno: "),

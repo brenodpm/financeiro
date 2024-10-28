@@ -174,6 +174,7 @@ impl Categorizador {
         Regra::adicionar(&mut regras);
         Lancamento::recategorizar();
         self.items = buscar_itens();
+        self.state.select_first();
     }
 }
 
@@ -212,7 +213,7 @@ impl Categorizador {
 
     fn render_list(&mut self, area: Rect, buf: &mut Buffer) {
         let block = Block::new()
-            .title(Line::raw("Categorizar").centered())
+            .title(Line::raw(format!("Categorizar {} itens", self.items.len())).centered())
             .borders(Borders::TOP)
             .border_set(symbols::border::EMPTY)
             .border_style(TODO_HEADER_STYLE)
@@ -249,8 +250,11 @@ impl Categorizador {
             info.push(self.items[i].texto.clone());
             info.push("".to_string());
 
-            let mut itens = self.items[i]
-                .lancamentos
+            //atuais.sort_by(|a, b| b.regex.len().cmp(&a.regex.len()));
+            let mut lanctos = self.items[i].lancamentos.clone();
+            lanctos.sort_by(|a, b|b.data.cmp(&a.data));
+
+            let mut itens = lanctos
                 .clone()
                 .into_iter()
                 .map(|l| {

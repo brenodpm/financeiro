@@ -37,7 +37,7 @@ fn importar_lancts(lista: &mut Vec<Lancamento>, arquivo: &str) {
                 let chave = &linha[..pos - 1];
                 let valor = &linha[pos..linha.find('<').unwrap_or(linha.len())];
                 match chave {
-                    "MEMO" => item.descricao = valor.to_string(),
+                    "MEMO" => item.descricao = valor.to_ascii_lowercase(),
                     "TRNAMT" => item.valor = valor.parse().unwrap(),
                     "DTPOSTED" => {
                         item.data = NaiveDate::parse_from_str(&valor[..8], "%Y%m%d").unwrap()

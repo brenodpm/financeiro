@@ -47,7 +47,7 @@ impl CSV for Categoria {
 
 impl fmt::Display for Categoria {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        f.write_fmt(format_args!("{} {}", self.tipo, self.nome))
+        f.write_fmt(format_args!("{}{}", self.tipo, self.nome))
     }
 }
 

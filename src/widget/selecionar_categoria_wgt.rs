@@ -120,7 +120,16 @@ impl SelecionarCategoria {
     }
 
     fn select_previous(&mut self) {
-        self.state.select_previous();
+        match self.state.selected() {
+            Some(i) => {
+                if i > 0 {
+                    self.state.select_previous();
+                } else {
+                    self.alterar_regex();
+                }
+            }
+            None => self.inicio(),
+        }
     }
 
     fn selecionar_categoria(&mut self) {
@@ -128,6 +137,10 @@ impl SelecionarCategoria {
             self.selecionado = Some(self.categorias[i].clone());
         }
         self.status = Status::Sair;
+    }
+    fn alterar_regex(&mut self) {
+        self.status = Status::AltDesc;
+        self.state.select(None);
     }
 }
 
@@ -163,8 +176,13 @@ impl SelecionarCategoria {
             KeyCode::Home => self.inicio(),
             KeyCode::End => self.fim(),
             KeyCode::Tab | KeyCode::Enter | KeyCode::Down => {
-                self.state.select_first();
-                self.status = Status::SelectCat;
+                self.descricao = self.descricao.trim().to_string();
+                if self.descricao.len() < 3 {
+                    self.descricao = self.texto_original.clone();
+                } else {
+                    self.state.select_first();
+                    self.status = Status::SelectCat;
+                }
             }
             KeyCode::Esc => {
                 if self.modificado() {
@@ -182,10 +200,7 @@ impl SelecionarCategoria {
             KeyCode::Down => self.select_next(),
             KeyCode::Up => self.select_previous(),
             KeyCode::Enter | KeyCode::Right => self.selecionar_categoria(),
-            KeyCode::Esc | KeyCode::BackTab | KeyCode::Tab | KeyCode::Left => {
-                self.status = Status::AltDesc;
-                self.state.select(None);
-            }
+            KeyCode::Esc | KeyCode::BackTab | KeyCode::Tab | KeyCode::Left => self.alterar_regex(),
             _ => {}
         }
     }
