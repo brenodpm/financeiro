@@ -1,6 +1,6 @@
 use std::fmt::{self, Formatter, Result};
 
-use super::{gerar_sha1, DtoIdentificado, SubVec, TipoFluxo};
+use super::{gerar_sha1, SubVec, TipoFluxo, Unico, CSV};
 
 #[derive(Debug, Clone, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Categoria {
@@ -9,7 +9,7 @@ pub struct Categoria {
     pub tipo: TipoFluxo,
 }
 
-impl DtoIdentificado for Categoria {
+impl Unico for Categoria {
     fn gerar_id(&mut self) {
         let mut itens: Vec<String> = Vec::new();
 
@@ -20,22 +20,28 @@ impl DtoIdentificado for Categoria {
     }
 }
 
-impl From<String> for Categoria {
-    #[inline]
-    fn from(value: String) -> Categoria {
+impl CSV for Categoria {
+    fn from_csv(value: String) -> Self {
         let values: Vec<String> = value.split(';').map(String::from).collect();
-        Categoria::from(values)
+        Categoria::from_csv_vec(values)
     }
-}
 
-impl From<Vec<String>> for Categoria {
-    #[inline]
-    fn from(value: Vec<String>) -> Categoria {
+    fn from_csv_vec(value: Vec<String>) -> Self {
         Categoria {
             id: value[0].clone(),
             nome: value[1].clone(),
-            tipo: TipoFluxo::from(value.sub_vec().sub_vec()),
+            tipo: TipoFluxo::from_csv_vec(value.sub_vec().sub_vec()),
         }
+    }
+
+    fn to_csv(&self) -> String {
+        let mut resp: Vec<String> = Vec::new();
+
+        resp.push(self.id.clone());
+        resp.push(self.nome.clone());
+        resp.push(self.tipo.to_csv());
+
+        resp.join(";")
     }
 }
 
@@ -46,17 +52,7 @@ impl fmt::Display for Categoria {
 }
 
 impl Categoria {
-    #[inline]
-    pub fn to_line(&self) -> String {
-        let mut resp: Vec<String> = Vec::new();
 
-        resp.push(self.id.clone());
-        resp.push(self.nome.clone());
-        resp.push(self.tipo.to_line());
-
-        resp.join(";")
-    }
-    
     pub fn lista_padrao() -> Vec<Categoria> {
         let mut resp: Vec<Categoria> = Vec::new();
 
@@ -65,7 +61,12 @@ impl Categoria {
         despesa(&mut resp, "Peixarias", "Abastecimento", "Variavel");
         despesa(&mut resp, "Supermercados", "Abastecimento", "Variavel");
         despesa(&mut resp, "Verdurarias", "Abastecimento", "Variavel");
-        despesa(&mut resp, "Cosméticos e perfumarias", "Bem estar", "Variavel");
+        despesa(
+            &mut resp,
+            "Cosméticos e perfumarias",
+            "Bem estar",
+            "Variavel",
+        );
         despesa(&mut resp, "Tratamentos estéticos", "Bem estar", "Variavel");
         despesa(&mut resp, "Vestuário", "Bem estar", "Variavel");
         despesa(&mut resp, "Materiais escolar", "Educação", "Variavel");
@@ -75,7 +76,12 @@ impl Categoria {
         despesa(&mut resp, "Lanches", "Lazer", "Variavel");
         despesa(&mut resp, "Restaurantes", "Lazer", "Variavel");
         despesa(&mut resp, "Ferramentas", "Moradia", "Variavel");
-        despesa(&mut resp, "Móveis e eletrodomésticos", "Moradia", "Variavel");
+        despesa(
+            &mut resp,
+            "Móveis e eletrodomésticos",
+            "Moradia",
+            "Variavel",
+        );
         despesa(&mut resp, "Obras e manutenções", "Moradia", "Variavel");
         despesa(&mut resp, "Medicamentos", "Saúde", "Variavel");
         despesa(&mut resp, "Consultas", "Saúde", "Variavel");
@@ -114,7 +120,7 @@ impl Categoria {
 
         receita(&mut resp, "Salário", "Trabalho");
         receita(&mut resp, "Férias", "Trabalho");
-        
+
         retorno(&mut resp, "Cashback");
         retorno(&mut resp, "Poupança");
         retorno(&mut resp, "Restituição");
@@ -133,31 +139,27 @@ impl Categoria {
 }
 
 fn despesa(array: &mut Vec<Categoria>, nome: &str, grupo: &str, despesa: &str) {
-    array.push(Categoria::from(
+    array.push(Categoria::from_csv(
         format!(";{nome};Despesa;{grupo};{despesa}").to_string(),
     ));
 }
 
 fn receita(array: &mut Vec<Categoria>, nome: &str, grupo: &str) {
-    array.push(Categoria::from(
+    array.push(Categoria::from_csv(
         format!(";{nome};Receita;{grupo}").to_string(),
     ));
 }
 
 fn investimento(array: &mut Vec<Categoria>, nome: &str) {
-    array.push(Categoria::from(
-        format!(";{nome};Investimento").to_string(),
-    ));
+    array.push(Categoria::from_csv(format!(";{nome};Investimento").to_string()));
 }
 
 fn retorno(array: &mut Vec<Categoria>, nome: &str) {
-    array.push(Categoria::from(
-        format!(";{nome};Retorno").to_string(),
-    ));
+    array.push(Categoria::from_csv(format!(";{nome};Retorno").to_string()));
 }
 
 fn transferencias(array: &mut Vec<Categoria>, nome: &str) {
-    array.push(Categoria::from(
+    array.push(Categoria::from_csv(
         format!(";{nome};Transferencias").to_string(),
     ));
 }

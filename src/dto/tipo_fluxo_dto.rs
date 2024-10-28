@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter, Result};
 
-use super::{GrupoDespesa, SubVec};
+use super::{GrupoDespesa, SubVec, CSV};
 
 #[derive(Debug, Clone, Eq, Ord, PartialEq, PartialOrd)]
 pub enum TipoFluxo {
@@ -12,9 +12,24 @@ pub enum TipoFluxo {
     Vazio,
 }
 
-impl TipoFluxo {
-    #[inline]
-    pub fn to_line(&self) -> String {
+impl CSV for TipoFluxo {
+    fn from_csv(value: String) -> Self {
+        let values: Vec<String> = value.split(';').map(String::from).collect();
+        TipoFluxo::from_csv_vec(values)
+    }
+
+    fn from_csv_vec(value: Vec<String>) -> Self {
+        match value[0].as_str() {
+            "Receita" => TipoFluxo::Receita(value[1].clone()),
+            "Despesa" => TipoFluxo::Despesa(GrupoDespesa::from_csv_vec(value.sub_vec())),
+            "Investimento" => TipoFluxo::Investimento,
+            "Retorno" => TipoFluxo::Retorno,
+            "Transferencias" => TipoFluxo::Transferencias,
+            _ => TipoFluxo::Vazio,
+        }
+    }
+
+    fn to_csv(&self) -> String {
         let mut resp: Vec<String> = Vec::new();
 
         match self {
@@ -24,7 +39,7 @@ impl TipoFluxo {
             }
             TipoFluxo::Despesa(grupo_despesa) => {
                 resp.push("Despesa".to_string());
-                resp.push(grupo_despesa.to_line());
+                resp.push(grupo_despesa.to_csv());
             }
             TipoFluxo::Investimento => {
                 resp.push("Investimento".to_string());
@@ -39,20 +54,6 @@ impl TipoFluxo {
         }
 
         resp.join(";")
-    }
-}
-
-impl From<Vec<String>> for TipoFluxo {
-    #[inline]
-    fn from(value: Vec<String>) -> Self {
-        match value[0].as_str() {
-            "Receita" => TipoFluxo::Receita(value[1].clone()),
-            "Despesa" => TipoFluxo::Despesa(GrupoDespesa::from(value.sub_vec())),
-            "Investimento" => TipoFluxo::Investimento,
-            "Retorno" => TipoFluxo::Retorno,
-            "Transferencias" => TipoFluxo::Transferencias,
-            _ => TipoFluxo::Vazio,
-        }
     }
 }
 

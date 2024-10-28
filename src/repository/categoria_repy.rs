@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-use crate::dto::{Categoria, DtoIdentificado};
+use crate::dto::{Categoria, Unico, CSV};
 
 use super::file_repy::{arq_escrever, arq_ler};
 
@@ -10,7 +10,7 @@ const CAT: &str = "categorias.csv";
 impl Categoria {
     pub fn listar() -> Vec<Categoria> {
         let mut resp: Vec<Categoria> = arq_ler(FIN, CAT)
-            .map(Categoria::from)
+            .map(Categoria::from_csv)
             .into_iter()
             .sorted_by(|a, b| a.to_string().partial_cmp(&b.to_string()).unwrap())
             .collect();
@@ -33,7 +33,7 @@ impl Categoria {
         arq_escrever(
             FIN,
             CAT,
-            &categorias.into_iter().map(|i| i.to_line()).collect(),
+            &categorias.into_iter().map(|i| i.to_csv()).collect(),
         )
     }
 }

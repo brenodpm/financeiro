@@ -6,14 +6,14 @@ pub enum FluxoRegra {
 }
 
 impl FluxoRegra {
-    pub fn to_line(&self) -> String {
+    pub fn to_string(&self) -> String {
         match self {
             FluxoRegra::Entrada => "E".to_string(),
             FluxoRegra::Saida => "S".to_string(),
             FluxoRegra::None => String::new(),
         }
     }
-    pub fn from_line(value: String) -> Self {
+    pub fn from_string(value: String) -> Self {
         match value.as_str() {
             "E" => FluxoRegra::Entrada,
             "S" => FluxoRegra::Saida,

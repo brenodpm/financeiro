@@ -4,7 +4,7 @@ use chrono::NaiveDate;
 use homedir::my_home;
 
 use crate::{
-    dto::{DtoIdentificado, Lancamento},
+    dto::{Unico, Lancamento},
     repository::file_repy::arq_externo_ler,
 };
 impl Lancamento {

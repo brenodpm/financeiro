@@ -1,4 +1,4 @@
-use crate::dto::{FluxoRegra, Regra};
+use crate::dto::{FluxoRegra, Regra, CSV};
 
 use super::file_repy::{arq_escrever, arq_ler};
 
@@ -19,7 +19,7 @@ impl Buscar for Vec<Regra> {
 
 impl Regra {
     pub fn listar() -> Vec<Regra> {
-        arq_ler(FIN, REGRAS).map(Regra::from).collect()
+        arq_ler(FIN, REGRAS).map(Regra::from_csv).collect()
     }
 
     pub fn adicionar(regras: &mut Vec<Regra>) {
@@ -33,7 +33,7 @@ impl Regra {
             REGRAS,
             &atuais
             .into_iter()
-            .map(|r| r.to_line())
+            .map(|r| r.to_csv())
             .collect(),
         );
     }

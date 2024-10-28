@@ -1,6 +1,6 @@
 use chrono::NaiveDate;
 
-use super::{gerar_sha1, DtoIdentificado};
+use super::{gerar_sha1, Unico, CSV};
 
 #[derive(Debug, Clone, Default)]
 pub struct Lancamento {
@@ -11,8 +11,23 @@ pub struct Lancamento {
     pub categoria: Option<String>,
 }
 
-impl Lancamento {
-    pub fn to_line(&self) -> String {
+impl CSV for Lancamento {
+    fn from_csv(value: String) -> Self {
+        let values: Vec<String> = value.split(';').map(String::from).collect();
+        Lancamento::from_csv_vec(values)
+    }
+
+    fn from_csv_vec(value: Vec<String>) -> Self {
+        Lancamento {
+            id: value[0].clone(),
+            descricao: value[1].clone(),
+            valor: value[2].parse().unwrap(),
+            data: NaiveDate::parse_from_str(&value[3], "%Y-%m-%d").unwrap(),
+            categoria: None,
+        }
+    }
+
+    fn to_csv(&self) -> String {
         let mut resp: Vec<String> = Vec::new();
 
         resp.push(self.id.clone());
@@ -28,7 +43,7 @@ impl Lancamento {
     }
 }
 
-impl DtoIdentificado for Lancamento {
+impl Unico for Lancamento {
     fn gerar_id(&mut self) {
         let mut itens: Vec<String> = Vec::new();
 
@@ -37,19 +52,5 @@ impl DtoIdentificado for Lancamento {
         itens.push(self.data.format("%Y%m%d").to_string());
 
         self.id = gerar_sha1(itens.join("-"));
-    }
-}
-
-impl From<String> for Lancamento {
-    #[inline]
-    fn from(s: String) -> Lancamento {
-        let attrs: Vec<String> = s.split(';').map(String::from).collect();
-        Lancamento {
-            id: attrs[0].clone(),
-            descricao: attrs[1].clone(),
-            valor: attrs[2].parse().unwrap(),
-            data: NaiveDate::parse_from_str(&attrs[3], "%Y-%m-%d").unwrap(),
-            categoria: None,
-        }
     }
 }

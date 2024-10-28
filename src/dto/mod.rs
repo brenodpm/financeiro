@@ -24,8 +24,14 @@ fn gerar_sha1(valor: String) -> String {
     hex::encode(hasher.finalize())
 }
 
-pub trait DtoIdentificado {
+pub trait Unico {
     fn gerar_id(&mut self);
+}
+
+pub trait CSV{
+    fn from_csv(value: String) -> Self;
+    fn from_csv_vec(value: Vec<String>) -> Self;
+    fn to_csv(&self) -> String;
 }
 
 trait SubVec<T> {

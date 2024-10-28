@@ -1,15 +1,32 @@
 use std::fmt::{Display, Formatter, Result};
 
-use super::TipoDespesa;
+use super::{TipoDespesa, CSV};
 
 #[derive(Debug, Clone, Eq, Ord, PartialEq, PartialOrd)]
 pub struct GrupoDespesa {
     pub grupo: String,
     pub tipo: TipoDespesa,
 }
-impl GrupoDespesa{
-    #[inline]
-    pub fn to_line(&self) -> String {
+
+impl CSV for GrupoDespesa {
+    fn from_csv(value: String) -> Self {
+        let values: Vec<String> = value.split(';').map(String::from).collect();
+        GrupoDespesa::from_csv_vec(values)
+    }
+
+    fn from_csv_vec(value: Vec<String>) -> Self {
+        GrupoDespesa {
+            grupo: value[0].clone(),
+            tipo: match value[1].as_str() {
+                "Fixa" => TipoDespesa::Fixa,
+                "Variavel" => TipoDespesa::Variavel,
+                "Perda" => TipoDespesa::Perda,
+                _ => TipoDespesa::Vazio,
+            },
+        }
+    }
+
+    fn to_csv(&self) -> String {
         let mut resp: Vec<String> = Vec::new();
 
         resp.push(self.grupo.clone());
@@ -21,21 +38,6 @@ impl GrupoDespesa{
         }
 
         resp.join(";")
-    }
-}
-
-impl From<Vec<String>> for GrupoDespesa {
-    #[inline]
-    fn from(value: Vec<String>) -> Self {
-        GrupoDespesa {
-            grupo: value[0].clone(),
-            tipo: match value[1].as_str() {
-                "Fixa" => TipoDespesa::Fixa,
-                "Variavel" => TipoDespesa::Variavel,
-                "Perda" => TipoDespesa::Perda,
-                _ => TipoDespesa::Vazio,
-            },
-        }
     }
 }
 

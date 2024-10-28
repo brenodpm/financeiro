@@ -6,8 +6,7 @@ pub struct NovaRegra {
     pub regex: String,
     pub fluxo: FluxoRegra,
     pub lancamentos: Vec<Lancamento>,
-    pub categoria: Option<Categoria>,
-    pub info: String,
+    pub categoria: Option<Categoria>
 }
 
 impl NovaRegra {
@@ -17,7 +16,6 @@ impl NovaRegra {
             categoria: None,
             fluxo: fluxo,
             regex: texto.clone(),
-            info: texto,
             lancamentos: lancamentos,
         }
     }
