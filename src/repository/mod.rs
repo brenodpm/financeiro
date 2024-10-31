@@ -4,3 +4,4 @@ mod categorizador_repy;
 mod lancamento_repy;
 mod regra_repy;
 mod categoria_repy;
+mod banco_repy;

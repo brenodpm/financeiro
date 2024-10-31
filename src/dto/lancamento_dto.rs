@@ -9,6 +9,7 @@ pub struct Lancamento {
     pub valor: f64,
     pub data: NaiveDate,
     pub categoria: Option<String>,
+    pub conta: Option<String>,
 }
 
 impl CSV for Lancamento {
@@ -23,7 +24,8 @@ impl CSV for Lancamento {
             descricao: value[1].clone(),
             valor: value[2].parse().unwrap(),
             data: NaiveDate::parse_from_str(&value[3], "%Y-%m-%d").unwrap(),
-            categoria: None,
+            categoria: Some(value[4].clone()),
+            conta: Some(value[5].clone()),
         }
     }
 
@@ -35,6 +37,10 @@ impl CSV for Lancamento {
         resp.push(self.valor.to_string());
         resp.push(self.data.format("%Y-%m-%d").to_string());
         resp.push(match self.categoria.clone() {
+            Some(c) => c,
+            None => String::new(),
+        });
+        resp.push(match self.conta.clone() {
             Some(c) => c,
             None => String::new(),
         });

@@ -6,7 +6,7 @@ mod config_log;
 
 use app::App;
 use color_eyre::eyre::Result;
-use dto::Lancamento;
+use dto::{Banco, Lancamento};
 use homedir::my_home;
 use std::fs::create_dir_all;
 
@@ -24,7 +24,11 @@ fn main() {
     log::info!("Início");
 
     preparar_diretorios();
-    Lancamento::categorizar(Lancamento::from_ofx());
+    let (lancamentos, bancos) =Lancamento::from_ofx();
+
+    Banco::salvar(bancos);
+    Lancamento::categorizar(lancamentos);
+
     start_tui().expect("msg");
     
     log::info!("Finalizado");
