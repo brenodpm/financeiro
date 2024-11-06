@@ -124,7 +124,7 @@ impl Categorizador {
             KeyCode::Esc => self.should_exit = true,
             KeyCode::Down => self.select_next(),
             KeyCode::Up => self.select_previous(),
-            KeyCode::Right | KeyCode::Enter => self.toggle_status(terminal),
+            KeyCode::Right | KeyCode::Enter => self.categorizar(terminal),
             KeyCode::Insert => self.atualizar(),
             _ => {}
         }
@@ -138,7 +138,7 @@ impl Categorizador {
     }
 
     /// Changes the status of the selected list item
-    fn toggle_status(&mut self, terminal: &mut DefaultTerminal) {
+    fn categorizar(&mut self, terminal: &mut DefaultTerminal) {
         if let Some(i) = self.state.selected() {
             let item = self.items[i].clone();
             let select = SelecionarCategoria::new(
@@ -149,10 +149,10 @@ impl Categorizador {
                     self.despesas.clone()
                 },
             );
-            let result = select.run(terminal).unwrap();
+            let (regex, selecionado) = select.run(terminal).unwrap();
 
-            self.items[i].regex = result.descricao;
-            self.items[i].categoria = result.selecionado;
+            self.items[i].regex = regex;
+            self.items[i].categoria = selecionado;
         }
     }
 
@@ -252,7 +252,7 @@ impl Categorizador {
 
             //atuais.sort_by(|a, b| b.regex.len().cmp(&a.regex.len()));
             let mut lanctos = self.items[i].lancamentos.clone();
-            lanctos.sort_by(|a, b|b.data.cmp(&a.data));
+            lanctos.sort_by(|a, b| b.data.cmp(&a.data));
 
             let mut itens = lanctos
                 .clone()

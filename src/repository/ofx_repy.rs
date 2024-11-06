@@ -71,11 +71,11 @@ fn importar_lancts(lista: &mut Vec<Lancamento>, bancos: &mut Vec<Banco>, arquivo
 fn add_lancamento(item: &mut Lancamento, conta: &String, lista: &mut Vec<Lancamento>) {
     item.conta = Some(conta.clone());
     item.gerar_id();
-    lista.push(item);
+    lista.push(item.clone());
     *item = Lancamento::default();
 }
 
-fn add_banco(banco: &String, conta: &String)->Banco{
+fn add_banco(banco: &String, conta: &String) -> Banco {
     Banco {
         id: banco.clone(),
         nome: banco.clone(),

@@ -35,8 +35,8 @@ enum Status {
 }
 
 pub struct SelecionarCategoria {
-    pub descricao: String,
-    pub selecionado: Option<Categoria>,
+    regex: String,
+    selecionado: Option<Categoria>,
 
     texto_original: String,
     categorias: Vec<Categoria>,
@@ -46,10 +46,10 @@ pub struct SelecionarCategoria {
 }
 
 impl SelecionarCategoria {
-    pub fn new(descricao: String, categorias: Vec<Categoria>) -> Self {
+    pub fn new(texto: String, categorias: Vec<Categoria>) -> Self {
         Self {
-            texto_original: descricao.clone(),
-            descricao,
+            texto_original: texto.clone(),
+            regex: texto,
             categorias,
             status: Status::AltDesc,
             character_index: 0,
@@ -59,7 +59,7 @@ impl SelecionarCategoria {
     }
 
     fn modificado(&self) -> bool {
-        self.descricao != self.texto_original
+        self.regex != self.texto_original
     }
 
     fn sair(&self) -> bool {
@@ -67,7 +67,7 @@ impl SelecionarCategoria {
     }
 
     fn byte_index(&self) -> usize {
-        self.descricao
+        self.regex
             .chars()
             .take(self.character_index)
             .map(|c| c.len_utf8())
@@ -81,29 +81,29 @@ impl SelecionarCategoria {
     }
 
     fn para_direita(&mut self) {
-        if self.character_index < self.descricao.chars().count() {
+        if self.character_index < self.regex.chars().count() {
             self.character_index += 1;
         }
     }
 
     fn digitar(&mut self, letra: char) {
         let index = self.byte_index();
-        self.descricao.insert(index, letra);
+        self.regex.insert(index, letra);
         self.para_direita();
     }
 
     fn apagar(&mut self) {
         if self.character_index > 0 {
             let index = self.byte_index();
-            self.descricao.remove(index - 1);
+            self.regex.remove(index - 1);
             self.para_esquerda();
         }
     }
 
     fn deletar(&mut self) {
-        if self.character_index < self.descricao.chars().count() {
+        if self.character_index < self.regex.chars().count() {
             let index = self.byte_index();
-            self.descricao.remove(index);
+            self.regex.remove(index);
         }
     }
 
@@ -112,7 +112,7 @@ impl SelecionarCategoria {
     }
 
     fn fim(&mut self) {
-        self.character_index = self.descricao.chars().count();
+        self.character_index = self.regex.chars().count();
     }
 
     fn select_next(&mut self) {
@@ -145,14 +145,14 @@ impl SelecionarCategoria {
 }
 
 impl SelecionarCategoria {
-    pub fn run(mut self, terminal: &mut DefaultTerminal) -> Result<SelecionarCategoria> {
+    pub fn run(mut self, terminal: &mut DefaultTerminal) -> Result<(String, Option<Categoria>)> {
         while !self.sair() {
             terminal.draw(|frame| frame.render_widget(&mut self, frame.area()))?;
             if let Event::Key(key) = event::read()? {
                 self.handle_key(key);
             };
         }
-        Ok(self)
+        Ok((self.regex, self.selecionado))
     }
 
     fn handle_key(&mut self, key: KeyEvent) {
@@ -176,9 +176,9 @@ impl SelecionarCategoria {
             KeyCode::Home => self.inicio(),
             KeyCode::End => self.fim(),
             KeyCode::Tab | KeyCode::Enter | KeyCode::Down => {
-                self.descricao = self.descricao.trim().to_string();
-                if self.descricao.len() < 3 {
-                    self.descricao = self.texto_original.clone();
+                self.regex = self.regex.trim().to_string();
+                if self.regex.len() < 3 {
+                    self.regex = self.texto_original.clone();
                 } else {
                     self.state.select_first();
                     self.status = Status::SelectCat;
@@ -186,7 +186,7 @@ impl SelecionarCategoria {
             }
             KeyCode::Esc => {
                 if self.modificado() {
-                    self.descricao = self.texto_original.clone();
+                    self.regex = self.texto_original.clone();
                 } else {
                     self.status = Status::Sair
                 }
@@ -255,7 +255,7 @@ impl SelecionarCategoria {
                 _ => Style::new(),
             });
 
-        let mut text = self.descricao.clone();
+        let mut text = self.regex.clone();
         text.push_str(" ");
         let mut spans = Vec::new();
 
