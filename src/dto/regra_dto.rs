@@ -1,6 +1,5 @@
 use super::{fluxo_regra_dto::FluxoRegra, CSV};
 
-
 #[derive(Debug)]
 pub struct Regra {
     pub fluxo: FluxoRegra,

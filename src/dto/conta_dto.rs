@@ -1,6 +1,5 @@
 use super::CSV;
 
-
 #[derive(Debug, Clone)]
 pub struct Conta {
     pub id: String,

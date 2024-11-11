@@ -1,21 +1,49 @@
 mod app;
+mod config_log;
 mod dto;
 mod repository;
 mod widget;
-mod config_log;
 
 use app::App;
 use color_eyre::eyre::Result;
 use dto::{Banco, Lancamento};
-use homedir::my_home;
-use std::fs::create_dir_all;
+use std::{fs::create_dir_all, path::PathBuf, sync::Once};
+
+static INIT: Once = Once::new();
+static mut HOME_DIR: Option<PathBuf> = None;
+pub fn init_home_dir() {
+    unsafe {
+        INIT.call_once(|| {
+            HOME_DIR = Some(get_home_dir_path());
+        });
+    }
+}
+
+#[cfg(debug_assertions)]
+fn get_home_dir_path() -> PathBuf {
+    use std::env;
+
+    let mut home = env::current_dir().unwrap();
+    home.push("../baseTest");
+    home
+}
+
+#[cfg(not(debug_assertions))]
+fn get_home_dir_path() -> PathBuf {
+    PathBuf::from(my_home().unwrap().unwrap())
+}
+
+pub fn get_home_dir() -> PathBuf {
+    unsafe { HOME_DIR.clone().expect("HOME_DIR not initialized") }
+}
 
 fn preparar_diretorios() {
-    let home = my_home().unwrap().unwrap();
+    let home = get_home_dir();
     for path in ["Downloads/importar", "Downloads/importado", "financeiro"] {
         let mut importar = home.clone();
         importar.push(path);
-        create_dir_all(importar.clone()).expect("Falha ao criar pasta");
+        create_dir_all(importar.clone())
+            .unwrap_or_else(|e| log::error!("Falha ao criar diretório {path} - erro: {e:?}"))
     }
 }
 
@@ -23,14 +51,14 @@ fn main() {
     config_log::config();
     log::info!("Início");
 
+    init_home_dir();
     preparar_diretorios();
-    let (lancamentos, bancos) =Lancamento::from_ofx();
+    let (lancamentos, bancos) = Lancamento::from_ofx();
 
     Banco::salvar(bancos);
     Lancamento::categorizar(lancamentos);
 
-    start_tui().expect("msg");
-    
+    start_tui().unwrap_or_else(|e| log::error!("Falha ao executar o terminal: {e:?}"));
     log::info!("Finalizado");
 }
 

@@ -36,14 +36,3 @@ pub trait CSV {
     fn from_csv_vec(value: Vec<String>) -> Self;
     fn to_csv(&self) -> String;
 }
-
-trait SubVec<T> {
-    fn sub_vec(self) -> Self;
-}
-
-impl<T> SubVec<T> for Vec<T> {
-    fn sub_vec(mut self) -> Self {
-        self.remove(0);
-        self
-    }
-}

@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter, Result};
 
-use super::{GrupoDespesa, SubVec, CSV};
+use super::{GrupoDespesa, CSV};
 
 #[derive(Debug, Clone, Eq, Ord, PartialEq, PartialOrd)]
 pub enum TipoFluxo {
@@ -21,7 +21,7 @@ impl CSV for TipoFluxo {
     fn from_csv_vec(value: Vec<String>) -> Self {
         match value[0].as_str() {
             "Receita" => TipoFluxo::Receita(value[1].clone()),
-            "Despesa" => TipoFluxo::Despesa(GrupoDespesa::from_csv_vec(value.sub_vec())),
+            "Despesa" => TipoFluxo::Despesa(GrupoDespesa::from_csv_vec(value.clone().drain(1..).collect())),
             "Investimento" => TipoFluxo::Investimento,
             "Retorno" => TipoFluxo::Retorno,
             "Transferencias" => TipoFluxo::Transferencias,

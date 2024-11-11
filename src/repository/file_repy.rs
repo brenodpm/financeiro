@@ -5,7 +5,8 @@ use std::{
 
 use encoding_rs::Encoding;
 use chardet::detect;
-use homedir::my_home;
+
+use crate::get_home_dir;
 
 pub fn arq_externo_ler(arquivo: &str) -> Vec<String> {
     let mut file = File::open(arquivo).expect("Failed to open file");
@@ -20,7 +21,7 @@ pub fn arq_externo_ler(arquivo: &str) -> Vec<String> {
 }
 
 pub fn arq_ler(dir: &str, file: &str) -> Flatten<Lines<BufReader<File>>> {
-    let mut path = my_home().unwrap().unwrap();
+    let mut path = get_home_dir();
     path.push(&dir);
     path.push(&file);
 
@@ -31,7 +32,7 @@ pub fn arq_ler(dir: &str, file: &str) -> Flatten<Lines<BufReader<File>>> {
 }
 
 pub fn arq_escrever(dir: &str, file: &str, linhas: &Vec<String>) {
-    let mut path = my_home().unwrap().unwrap();
+    let mut path = get_home_dir();
     path.push(&dir);
     path.push(&file);
 

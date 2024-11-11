@@ -1,6 +1,6 @@
 use std::fmt::{self, Formatter, Result};
 
-use super::{gerar_sha1, SubVec, TipoFluxo, Unico, CSV};
+use super::{gerar_sha1, TipoFluxo, Unico, CSV};
 
 #[derive(Debug, Clone, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Categoria {
@@ -30,7 +30,7 @@ impl CSV for Categoria {
         Categoria {
             id: value[0].clone(),
             nome: value[1].clone(),
-            tipo: TipoFluxo::from_csv_vec(value.sub_vec().sub_vec()),
+            tipo: TipoFluxo::from_csv_vec(value.clone().drain(2..).collect()),
         }
     }
 

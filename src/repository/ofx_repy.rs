@@ -1,15 +1,15 @@
 use std::fs::{read_dir, rename};
 
 use chrono::NaiveDate;
-use homedir::my_home;
 
 use crate::{
     dto::{Banco, Conta, Lancamento, Unico},
+    get_home_dir,
     repository::file_repy::arq_externo_ler,
 };
 impl Lancamento {
     pub fn from_ofx() -> (Vec<Lancamento>, Vec<Banco>) {
-        let mut dir = my_home().unwrap().unwrap();
+        let mut dir = get_home_dir();
         dir.push("Downloads/importar");
 
         log::info!("Importando XSD");
