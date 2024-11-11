@@ -4,11 +4,16 @@ use super::regra_repy::Buscar;
 
 impl Lancamento {
     pub fn recategorizar() {
-        Lancamento::categorizar(Vec::new());
+        encontrar_categoria(Lancamento::nao_categorizados_listar());
     }
 
     pub fn categorizar(itens: Vec<Lancamento>) {
-        log::info!("Categorizar");
+        match itens.len() {
+            0 => log::info!("nenhum novo lançamento importado"),
+            1 => log::info!("um novo lançamento importado"),
+            _ => log::info!("{} novos lançamentos importados", itens.len())
+        } 
+
         let mut pendente = Lancamento::nao_categorizados_listar();
 
         itens.into_iter().for_each(|novo| {
@@ -17,7 +22,6 @@ impl Lancamento {
             }
         });
 
-        log::info!("Total a ser categorizados: {}", pendente.len());
         encontrar_categoria(pendente);
     }
 }
@@ -45,6 +49,12 @@ fn encontrar_categoria(pendente: Vec<Lancamento>) {
             }
         }
     }
+
+    log::info!(
+        "{} lançamento(s) categorizado(s), restando {}",
+        encontrados.len(),
+        nao_encontrado.len()
+    );
 
     Lancamento::nao_categorizados_salvar(&nao_encontrado);
     adicionar_categorizados(encontrados);

@@ -30,6 +30,8 @@ fn get_home_dir_path() -> PathBuf {
 
 #[cfg(not(debug_assertions))]
 fn get_home_dir_path() -> PathBuf {
+    use homedir::my_home;
+
     PathBuf::from(my_home().unwrap().unwrap())
 }
 
@@ -48,10 +50,10 @@ fn preparar_diretorios() {
 }
 
 fn main() {
+    init_home_dir();
     config_log::config();
     log::info!("Início");
 
-    init_home_dir();
     preparar_diretorios();
     let (lancamentos, bancos) = Lancamento::from_ofx();
 

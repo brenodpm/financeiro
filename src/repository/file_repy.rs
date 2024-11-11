@@ -23,9 +23,9 @@ pub fn arq_externo_ler(arquivo: &str) -> Vec<String> {
 pub fn arq_ler(dir: &str, file: &str) -> Flatten<Lines<BufReader<File>>> {
     let mut path = get_home_dir();
     path.push(&dir);
-    path.push(&file);
+    checar_dir(&path);
 
-    checar_dir(dir);
+    path.push(&file);
     checar_arq(&path);
 
     BufReader::new(File::open(&path).unwrap()).lines().flatten()
@@ -34,16 +34,16 @@ pub fn arq_ler(dir: &str, file: &str) -> Flatten<Lines<BufReader<File>>> {
 pub fn arq_escrever(dir: &str, file: &str, linhas: &Vec<String>) {
     let mut path = get_home_dir();
     path.push(&dir);
-    path.push(&file);
+    checar_dir(&path);
 
-    checar_dir(dir);
+    path.push(&file);
     checar_arq(&path);
 
     write(path, linhas.join("\n"))
         .expect("Falha ao escrever no arquivo");
 }
 
-fn checar_dir(path: &str) {
+fn checar_dir(path: &PathBuf) {
     if !Path::new(&path).exists() {
         create_dir_all(&path).expect("Falha ao criar diretorio");
     }
