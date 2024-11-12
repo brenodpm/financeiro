@@ -52,7 +52,6 @@ impl fmt::Display for Categoria {
 }
 
 impl Categoria {
-
     pub fn lista_padrao() -> Vec<Categoria> {
         let mut resp: Vec<Categoria> = Vec::new();
 
@@ -61,12 +60,7 @@ impl Categoria {
         despesa(&mut resp, "Peixarias", "Abastecimento", "Variavel");
         despesa(&mut resp, "Supermercados", "Abastecimento", "Variavel");
         despesa(&mut resp, "Verdurarias", "Abastecimento", "Variavel");
-        despesa(
-            &mut resp,
-            "Cosméticos e perfumarias",
-            "Bem estar",
-            "Variavel",
-        );
+        despesa(&mut resp, "Cosméticos e perfumarias", "Bem estar","Variavel");
         despesa(&mut resp, "Tratamentos estéticos", "Bem estar", "Variavel");
         despesa(&mut resp, "Vestuário", "Bem estar", "Variavel");
         despesa(&mut resp, "Materiais escolar", "Educação", "Variavel");
@@ -76,12 +70,7 @@ impl Categoria {
         despesa(&mut resp, "Lanches", "Lazer", "Variavel");
         despesa(&mut resp, "Restaurantes", "Lazer", "Variavel");
         despesa(&mut resp, "Ferramentas", "Moradia", "Variavel");
-        despesa(
-            &mut resp,
-            "Móveis e eletrodomésticos",
-            "Moradia",
-            "Variavel",
-        );
+        despesa(&mut resp, "Móveis e eletrodomésticos", "Moradia", "Variavel");
         despesa(&mut resp, "Obras e manutenções", "Moradia", "Variavel");
         despesa(&mut resp, "Medicamentos", "Saúde", "Variavel");
         despesa(&mut resp, "Consultas", "Saúde", "Variavel");
@@ -134,7 +123,12 @@ impl Categoria {
         transferencias(&mut resp, "Transferência entre contas");
         transferencias(&mut resp, "Empréstimos familiar");
 
+        resp.push(Categoria::new());
         resp
+    }
+    
+    fn new() -> Self {
+        Self { id: String::new(), nome:String::new(), tipo: TipoFluxo::SemCategoria }
     }
 }
 

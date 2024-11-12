@@ -55,7 +55,10 @@ impl Default for Categorizador {
                     receitas.push(c);
                 }
 
-                TipoFluxo::Vazio => {}
+                TipoFluxo::SemCategoria => {
+                    despesas.push(c.clone());
+                    receitas.push(c);
+                }
             });
 
         Self {

@@ -9,7 +9,7 @@ pub enum TipoFluxo {
     Investimento,
     Retorno,
     Transferencias,
-    Vazio,
+    SemCategoria,
 }
 
 impl CSV for TipoFluxo {
@@ -21,11 +21,13 @@ impl CSV for TipoFluxo {
     fn from_csv_vec(value: Vec<String>) -> Self {
         match value[0].as_str() {
             "Receita" => TipoFluxo::Receita(value[1].clone()),
-            "Despesa" => TipoFluxo::Despesa(GrupoDespesa::from_csv_vec(value.clone().drain(1..).collect())),
+            "Despesa" => TipoFluxo::Despesa(GrupoDespesa::from_csv_vec(
+                value.clone().drain(1..).collect(),
+            )),
             "Investimento" => TipoFluxo::Investimento,
             "Retorno" => TipoFluxo::Retorno,
             "Transferencias" => TipoFluxo::Transferencias,
-            _ => TipoFluxo::Vazio,
+            _ => TipoFluxo::SemCategoria,
         }
     }
 
@@ -50,7 +52,9 @@ impl CSV for TipoFluxo {
             TipoFluxo::Transferencias => {
                 resp.push("Transferencias".to_string());
             }
-            TipoFluxo::Vazio => {}
+            TipoFluxo::SemCategoria => {
+                resp.push("Sem categoria".to_string());
+            }
         }
 
         resp.join(";")
@@ -65,7 +69,7 @@ impl Display for TipoFluxo {
             Self::Investimento => f.write_str("Investimento: "),
             Self::Transferencias => f.write_str("Transferencias: "),
             Self::Retorno => f.write_str("Retorno: "),
-            Self::Vazio => f.write_str("????: "),
+            Self::SemCategoria => f.write_str("Sem categoria"),
         }
     }
 }
