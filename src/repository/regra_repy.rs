@@ -2,7 +2,7 @@ use crate::dto::{FluxoRegra, Regra, CSV};
 
 use super::file_repy::{arq_escrever, arq_ler};
 
-const FIN: &str = "financeiro";
+const FIN: &str = ".financeiro";
 const REGRAS: &str = "regras.csv";
 
 pub trait Buscar {

@@ -2,7 +2,7 @@ use crate::dto::{Lancamento, CSV};
 
 use super::file_repy::{arq_escrever, arq_ler};
 
-const FIN: &str = "financeiro";
+const FIN: &str = ".financeiro";
 const NAO_CAT: &str = "nao-cat.csv";
 const LANCAMENTOS: &str = "lancamentos.csv";
 

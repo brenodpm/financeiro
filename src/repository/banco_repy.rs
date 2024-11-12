@@ -4,7 +4,7 @@ use crate::dto::{Banco, Conta, CSV};
 
 use super::file_repy::{arq_escrever, arq_ler};
 
-const FIN: &str = "financeiro";
+const FIN: &str = ".financeiro";
 const BANC: &str = "bancos.csv";
 const CONT: &str = "contas.csv";
 

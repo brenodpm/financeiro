@@ -41,7 +41,7 @@ pub fn get_home_dir() -> PathBuf {
 
 fn preparar_diretorios() {
     let home = get_home_dir();
-    for path in ["Downloads/importar", "Downloads/importado", "financeiro"] {
+    for path in ["Downloads/importar", "Downloads/importado", ".financeiro"] {
         let mut importar = home.clone();
         importar.push(path);
         create_dir_all(importar.clone())

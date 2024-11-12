@@ -8,7 +8,7 @@ use crate::get_home_dir;
 
 pub fn config() {
     let mut path = get_home_dir();
-    path.push(Local::now().format("log/%Y-%m-%d.log").to_string());
+    path.push(Local::now().format(".financeiro/log/%Y-%m-%d.log").to_string());
     
     let logfile = FileAppender::builder()
         .encoder(Box::new(PatternEncoder::new("{l} - {m}\n")))
