@@ -1,12 +1,54 @@
 use std::fmt::{self, Formatter, Result};
 
-use super::{gerar_sha1, TipoFluxo, Unico, CSV};
+use super::{gerar_sha1, lazy::LazyFn, optional_lazy::OptionalLazyFn, Lazy, OptionalLazy, TipoFluxo, Unico, CSV};
 
 #[derive(Debug, Clone, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Categoria {
     pub id: String,
     pub nome: String,
     pub tipo: TipoFluxo,
+}
+
+impl LazyFn<Categoria> for Lazy<Categoria> {
+    fn id(&self) -> String {
+        match self {
+            Lazy::Id(id) => id.clone(),
+            Lazy::Some(cat) => cat.id.clone(),
+        }
+    }
+
+    fn some(&self) -> Categoria {
+        match self {
+            Lazy::Id(id) => Categoria {
+                id: id.clone(),
+                nome: String::new(),
+                tipo: TipoFluxo::SemCategoria,
+            },
+            Lazy::Some(cat) => cat.clone(),
+        }
+    }
+}
+
+impl OptionalLazyFn<Categoria> for OptionalLazy<Categoria> {
+    fn id(&self) -> Option<String> {
+        match self {
+            OptionalLazy::Id(id) => Some(id.clone()),
+            OptionalLazy::Some(cat) => Some(cat.id.clone()),
+            OptionalLazy::None => None,
+        }
+    }
+
+    fn some(&self) -> Option<Categoria> {
+        match self {
+            OptionalLazy::Id(id) =>Some(Categoria {
+                id: id.clone(),
+                nome: String::new(),
+                tipo: TipoFluxo::SemCategoria,
+            }),
+            OptionalLazy::Some(cat) => Some(cat.clone()),
+            OptionalLazy::None => None,
+        }
+    }
 }
 
 impl Unico for Categoria {
@@ -60,7 +102,12 @@ impl Categoria {
         despesa(&mut resp, "Peixarias", "Abastecimento", "Variavel");
         despesa(&mut resp, "Supermercados", "Abastecimento", "Variavel");
         despesa(&mut resp, "Verdurarias", "Abastecimento", "Variavel");
-        despesa(&mut resp, "Cosméticos e perfumarias", "Bem estar","Variavel");
+        despesa(
+            &mut resp,
+            "Cosméticos e perfumarias",
+            "Bem estar",
+            "Variavel",
+        );
         despesa(&mut resp, "Tratamentos estéticos", "Bem estar", "Variavel");
         despesa(&mut resp, "Vestuário", "Bem estar", "Variavel");
         despesa(&mut resp, "Materiais escolar", "Educação", "Variavel");
@@ -70,7 +117,12 @@ impl Categoria {
         despesa(&mut resp, "Lanches", "Lazer", "Variavel");
         despesa(&mut resp, "Restaurantes", "Lazer", "Variavel");
         despesa(&mut resp, "Ferramentas", "Moradia", "Variavel");
-        despesa(&mut resp, "Móveis e eletrodomésticos", "Moradia", "Variavel");
+        despesa(
+            &mut resp,
+            "Móveis e eletrodomésticos",
+            "Moradia",
+            "Variavel",
+        );
         despesa(&mut resp, "Obras e manutenções", "Moradia", "Variavel");
         despesa(&mut resp, "Medicamentos", "Saúde", "Variavel");
         despesa(&mut resp, "Consultas", "Saúde", "Variavel");
@@ -126,9 +178,13 @@ impl Categoria {
         resp.push(Categoria::new());
         resp
     }
-    
+
     fn new() -> Self {
-        Self { id: String::new(), nome:String::new(), tipo: TipoFluxo::SemCategoria }
+        Self {
+            id: String::new(),
+            nome: String::new(),
+            tipo: TipoFluxo::SemCategoria,
+        }
     }
 }
 
@@ -145,7 +201,9 @@ fn receita(array: &mut Vec<Categoria>, nome: &str, grupo: &str) {
 }
 
 fn investimento(array: &mut Vec<Categoria>, nome: &str) {
-    array.push(Categoria::from_csv(format!(";{nome};Investimento").to_string()));
+    array.push(Categoria::from_csv(
+        format!(";{nome};Investimento").to_string(),
+    ));
 }
 
 fn retorno(array: &mut Vec<Categoria>, nome: &str) {

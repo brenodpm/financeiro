@@ -1,21 +1,26 @@
 mod banco_dto;
-mod catetogia_dto;
+mod categoria_dto;
 mod conta_dto;
 mod fluxo_regra_dto;
 mod grupo_despesa_dto;
+mod optional_lazy;
 mod lancamento_dto;
+mod lazy;
 mod nova_regra_dto;
 mod regra_dto;
 mod tipo_despesa_dto;
 mod tipo_fluxo_dto;
 
 pub use banco_dto::Banco;
-pub use catetogia_dto::Categoria;
+pub use categoria_dto::Categoria;
 pub use conta_dto::Conta;
 pub use fluxo_regra_dto::FluxoRegra;
 pub use grupo_despesa_dto::GrupoDespesa;
 use hex;
 pub use lancamento_dto::Lancamento;
+pub use lazy::{Lazy, LazyFn};
+pub use optional_lazy::{OptionalLazy, OptionalLazyFn};
+
 pub use nova_regra_dto::NovaRegra;
 pub use regra_dto::Regra;
 use sha1::{Digest, Sha1};

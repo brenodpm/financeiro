@@ -55,13 +55,17 @@ fn main() {
     log::info!("Início");
 
     preparar_diretorios();
-    let (lancamentos, bancos) = Lancamento::from_ofx();
-
-    Banco::salvar(bancos);
-    Lancamento::categorizar(lancamentos);
+    importar();
 
     start_tui().unwrap_or_else(|e| log::error!("Falha ao executar o terminal: {e:?}"));
     log::info!("Finalizado");
+}
+
+fn importar() {
+    let (lancamentos, bancos) = Lancamento::from_ofx();
+
+    Banco::salvar(bancos);
+    Lancamento::categorizar(&lancamentos);
 }
 
 fn start_tui() -> Result<()> {

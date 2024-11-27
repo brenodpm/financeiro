@@ -7,6 +7,24 @@ const NAO_CAT: &str = "nao-cat.csv";
 const LANCAMENTOS: &str = "lancamentos.csv";
 
 impl Lancamento {
+    pub fn categorizar(itens: &Vec<Lancamento>){
+        match itens.len() {
+            0 => log::info!("nenhum novo lançamento importado"),
+            1 => log::info!("um novo lançamento importado"),
+            _ => log::info!("{} novos lançamentos importados", itens.len())
+        } 
+        
+        let mut pendente = Lancamento::nao_categorizados_listar();
+
+        itens.into_iter().for_each(|novo| {
+            if !pendente.iter().any(|a| a.id == novo.id) {
+                pendente.push(novo.clone());
+            }
+        });
+
+        Lancamento::nao_categorizados_salvar(&pendente);
+    }
+
     pub fn nao_categorizados_listar() -> Vec<Lancamento> {
         arq_ler(FIN, NAO_CAT).map(Lancamento::from_csv).collect()
     }

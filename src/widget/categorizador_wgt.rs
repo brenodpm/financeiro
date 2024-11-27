@@ -17,9 +17,9 @@ use ratatui::{
 };
 use std::collections::HashMap;
 
-use crate::dto::{Categoria, FluxoRegra, Lancamento, NovaRegra, Regra, TipoFluxo};
+use crate::dto::{Categoria, FluxoRegra, Lancamento, Lazy, NovaRegra, Regra, TipoFluxo};
 
-use super::SelecionarCategoria;
+use super::{confirmar_categorizacao_wgt::ConfirmarCategorias, SelecionarCategoria};
 
 const TODO_HEADER_STYLE: Style = Style::new().fg(SLATE.c100).bg(BLUE.c800);
 const NORMAL_ROW_BG: Color = SLATE.c950;
@@ -128,7 +128,7 @@ impl Categorizador {
             KeyCode::Down => self.select_next(),
             KeyCode::Up => self.select_previous(),
             KeyCode::Right | KeyCode::Enter => self.categorizar(terminal),
-            KeyCode::Insert => self.atualizar(),
+            KeyCode::Insert => self.atualizar(terminal),
             _ => {}
         }
     }
@@ -136,6 +136,7 @@ impl Categorizador {
     fn select_next(&mut self) {
         self.state.select_next();
     }
+
     fn select_previous(&mut self) {
         self.state.select_previous();
     }
@@ -159,7 +160,7 @@ impl Categorizador {
         }
     }
 
-    fn atualizar(&mut self) {
+    fn atualizar(&mut self, terminal: &mut DefaultTerminal) {
         let mut regras: Vec<Regra> = Vec::new();
 
         self.items
@@ -169,13 +170,14 @@ impl Categorizador {
                 Some(cat) => regras.push(Regra {
                     regex: nr.regex,
                     fluxo: nr.fluxo,
-                    categoria: cat.id,
+                    categoria: Lazy::Some(cat),
                 }),
                 None => {}
             });
 
         Regra::adicionar(&mut regras);
-        Lancamento::recategorizar();
+        ConfirmarCategorias::default().run(terminal).unwrap();
+        //Lancamento::recategorizar();
         self.items = buscar_itens();
         self.state.select_first();
     }

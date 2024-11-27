@@ -4,7 +4,7 @@ use ratatui::DefaultTerminal;
 use crate::widget::Categorizador;
 
 pub enum Etapa {
-    Categoriazar,
+    Categorizar,
     Sair,
 }
 
@@ -15,7 +15,7 @@ pub struct App {
 impl Default for App {
     fn default() -> Self {
         Self {
-            etapa: Etapa::Categoriazar,
+            etapa: Etapa::Categorizar,
         }
     }
 }
@@ -24,7 +24,7 @@ impl App {
     pub fn run(mut self, mut terminal: DefaultTerminal) -> Result<()> {
         loop {
             match self.etapa {
-                Etapa::Categoriazar => self.categorizar(&mut terminal),
+                Etapa::Categorizar => self.categorizar(&mut terminal),
                 Etapa::Sair => break,
             }
         }

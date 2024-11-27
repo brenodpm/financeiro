@@ -1,10 +1,10 @@
-use super::{fluxo_regra_dto::FluxoRegra, CSV};
+use super::{fluxo_regra_dto::FluxoRegra, Categoria, Lazy, LazyFn, CSV};
 
 #[derive(Debug)]
 pub struct Regra {
     pub fluxo: FluxoRegra,
     pub regex: String,
-    pub categoria: String,
+    pub categoria: Lazy<Categoria>,
 }
 
 impl CSV for Regra {
@@ -17,7 +17,7 @@ impl CSV for Regra {
         Regra {
             regex: value[0].clone(),
             fluxo: FluxoRegra::from_string(value[1].clone()),
-            categoria: value[2].clone(),
+            categoria: Lazy::Id(value[2].clone()),
         }
     }
 
@@ -26,7 +26,7 @@ impl CSV for Regra {
 
         resp.push(self.regex.to_lowercase());
         resp.push(self.fluxo.to_string());
-        resp.push(self.categoria.clone());
+        resp.push(self.categoria.id());
 
         resp.join(";")
     }

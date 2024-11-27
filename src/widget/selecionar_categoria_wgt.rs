@@ -19,7 +19,7 @@ use ratatui::{
     DefaultTerminal,
 };
 
-use crate::dto::Categoria;
+use crate::dto::{Categoria, TipoFluxo};
 
 const TODO_HEADER_STYLE: Style = Style::new().fg(SLATE.c100).bg(BLUE.c800);
 const NORMAL_ROW_BG: Color = SLATE.c950;
@@ -135,7 +135,11 @@ impl SelecionarCategoria {
     fn selecionar_categoria(&mut self) {
         if let Some(i) = self.state.selected() {
             self.selecionado = Some(self.categorias[i].clone());
+            if self.categorias[i].tipo == TipoFluxo::SemCategoria {
+                self.regex = self.texto_original.clone();
+            }
         }
+
         self.status = Status::Sair;
     }
     fn alterar_regex(&mut self) {
