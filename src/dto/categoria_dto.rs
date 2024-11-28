@@ -30,11 +30,11 @@ impl LazyFn<Categoria> for Lazy<Categoria> {
 }
 
 impl OptionalLazyFn<Categoria> for OptionalLazy<Categoria> {
-    fn id(&self) -> Option<String> {
+    fn id(&self) -> String {
         match self {
-            OptionalLazy::Id(id) => Some(id.clone()),
-            OptionalLazy::Some(cat) => Some(cat.id.clone()),
-            OptionalLazy::None => None,
+            OptionalLazy::Id(id) => id.clone(),
+            OptionalLazy::Some(cat) => cat.id.clone(),
+            OptionalLazy::None => String::new(),
         }
     }
 

@@ -1,6 +1,6 @@
 use chrono::NaiveDate;
 
-use super::{gerar_sha1, Categoria, OptionalLazy, OptionalLazyFn, Unico, CSV};
+use super::{gerar_sha1, Categoria, OptionalLazy, OptionalLazyFn, Regra, Unico, CSV};
 
 #[derive(Debug, Clone, Default)]
 pub struct Lancamento {
@@ -10,6 +10,7 @@ pub struct Lancamento {
     pub data: NaiveDate,
     pub categoria: OptionalLazy<Categoria>,
     pub conta: Option<String>,
+    pub regra: OptionalLazy<Regra>,
 }
 
 impl CSV for Lancamento {
@@ -26,6 +27,7 @@ impl CSV for Lancamento {
             data: NaiveDate::parse_from_str(&value[3], "%Y-%m-%d").unwrap(),
             categoria: OptionalLazy::Id(value[4].clone()),
             conta: Some(value[5].clone()),
+            regra: OptionalLazy::Id(value[6].clone()),
         }
     }
 
@@ -36,14 +38,12 @@ impl CSV for Lancamento {
         resp.push(self.descricao.clone());
         resp.push(self.valor.to_string());
         resp.push(self.data.format("%Y-%m-%d").to_string());
-        resp.push(match self.categoria.id() {
-            Some(id) => id,
-            None => String::new(),
-        });
+        resp.push(self.categoria.id());
         resp.push(match self.conta.clone() {
             Some(c) => c,
             None => String::new(),
         });
+        resp.push(self.regra.id());
 
         resp.join(";")
     }

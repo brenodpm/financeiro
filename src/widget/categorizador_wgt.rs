@@ -17,7 +17,7 @@ use ratatui::{
 };
 use std::collections::HashMap;
 
-use crate::dto::{Categoria, FluxoRegra, Lancamento, Lazy, NovaRegra, Regra, TipoFluxo};
+use crate::dto::{Categoria, FluxoRegra, Lancamento, Lazy, NovaRegra, Regra, TipoFluxo, Unico};
 
 use super::{confirmar_categorizacao_wgt::ConfirmarCategorias, SelecionarCategoria};
 
@@ -167,11 +167,18 @@ impl Categorizador {
             .clone()
             .into_iter()
             .for_each(|nr| match nr.categoria {
-                Some(cat) => regras.push(Regra {
-                    regex: nr.regex,
-                    fluxo: nr.fluxo,
-                    categoria: Lazy::Some(cat),
-                }),
+                Some(cat) => {
+                    let mut regra = Regra {
+                        id: String::new(),
+                        regex: nr.regex,
+                        fluxo: nr.fluxo,
+                        categoria: Lazy::Some(cat),
+                    };
+
+                    regra.gerar_id();
+
+                    regras.push(regra)
+                }
                 None => {}
             });
 

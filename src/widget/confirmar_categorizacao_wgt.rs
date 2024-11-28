@@ -1,6 +1,6 @@
 use crate::{
     dto::{
-        Categoria, FluxoRegra, Lancamento, Lazy, OptionalLazy, OptionalLazyFn, Regra, TipoFluxo,
+        Categoria, FluxoRegra, Lancamento, Lazy, LazyFn, OptionalLazy, OptionalLazyFn, Regra, TipoFluxo, Unico
     },
     repository::Buscar,
 };
@@ -58,7 +58,7 @@ impl Default for ConfirmarCategorias {
                     receitas.push(c);
                 }
             });
-let (enc, nenc) =encontrar_categoria();
+        let (enc, nenc) = encontrar_categoria();
         Self {
             should_exit: false,
             itens: enc,
@@ -70,7 +70,7 @@ let (enc, nenc) =encontrar_categoria();
     }
 }
 
-fn encontrar_categoria() -> (Vec<Lancamento>,Vec<Lancamento>) {
+fn encontrar_categoria() -> (Vec<Lancamento>, Vec<Lancamento>) {
     let regras = Regra::listar();
     let mut encontrados: Vec<Lancamento> = Vec::new();
     let mut nao_encontrado: Vec<Lancamento> = Vec::new();
@@ -85,8 +85,9 @@ fn encontrar_categoria() -> (Vec<Lancamento>,Vec<Lancamento>) {
                 FluxoRegra::Saida
             },
         ) {
-            Some(c) => {
-                item.categoria = OptionalLazy::Some(c.clone());
+            Some(regra) => {
+                item.categoria = OptionalLazy::Some(regra.categoria.some());
+                item.regra = OptionalLazy::Some(regra.clone());
                 encontrados.push(item);
             }
             None => {
@@ -104,10 +105,10 @@ fn encontrar_categoria() -> (Vec<Lancamento>,Vec<Lancamento>) {
     //Lancamento::nao_categorizados_salvar(&nao_encontrado);
     (
         encontrados
-        .into_iter()
-        .sorted_by(|a, b| a.data.cmp(&b.data))
-        .collect(),
-    nao_encontrado
+            .into_iter()
+            .sorted_by(|a, b| a.data.cmp(&b.data))
+            .collect(),
+        nao_encontrado,
     )
 }
 
@@ -138,12 +139,11 @@ impl ConfirmarCategorias {
     }
 
     fn atualizar(&mut self) {
-        Lancamento::lancamentos_salvar(&self.itens);
+        Lancamento::lancamentos_adicionar(&self.itens);
         Lancamento::nao_categorizados_salvar(&self.nao_encontrados);
-        
+
         self.should_exit = true;
     }
-
 
     fn select_next(&mut self) {
         self.state.select_next();
@@ -169,7 +169,8 @@ impl ConfirmarCategorias {
             match selecionado {
                 Some(cat) => {
                     if regex != item.descricao {
-                        Regra::nova(Regra {
+                        let mut regra = Regra {
+                            id: String::new(),
                             categoria: Lazy::Some(cat.clone()),
                             fluxo: if item.valor > 0.0 {
                                 FluxoRegra::Entrada
@@ -177,8 +178,15 @@ impl ConfirmarCategorias {
                                 FluxoRegra::Saida
                             },
                             regex: regex,
-                        });
-                    };
+                        };
+
+                        regra.gerar_id();
+
+                        Regra::nova(regra.clone());
+                        self.itens[i].regra = OptionalLazy::Some(regra);
+                    }else{
+                        self.itens[i].regra = OptionalLazy::None;
+                    }
                     self.itens[i].categoria = OptionalLazy::Some(cat);
                 }
                 None => {}

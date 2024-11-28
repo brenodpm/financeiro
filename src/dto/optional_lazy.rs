@@ -7,6 +7,6 @@ pub enum OptionalLazy<T>{
 }
 
 pub trait OptionalLazyFn<T>{
-    fn id(&self) -> Option<String>;
+    fn id(&self) -> String;
     fn some(&self) -> Option<T>;
 }

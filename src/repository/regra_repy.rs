@@ -6,14 +6,14 @@ const FIN: &str = ".financeiro";
 const REGRAS: &str = "regras.csv";
 
 pub trait Buscar {
-    fn buscar(&self, descricao: &String, fluxo: FluxoRegra) -> Option<Categoria>;
+    fn buscar(&self, descricao: &String, fluxo: FluxoRegra) -> Option<Regra>;
 }
 
 impl Buscar for Vec<Regra> {
-    fn buscar(&self, descricao: &String, fluxo: FluxoRegra) -> Option<Categoria> {
+    fn buscar(&self, descricao: &String, fluxo: FluxoRegra) -> Option<Regra> {
         self.into_iter()
             .find(|item| item.fluxo == fluxo && descricao.contains(&item.regex))
-            .map(|item| item.categoria.some())
+            .map(|item| item.clone())
     }
 }
 

@@ -40,6 +40,18 @@ impl Lancamento {
     pub fn lancamentos_listar() -> Vec<Lancamento>{
         arq_ler(FIN, LANCAMENTOS).map(Lancamento::from_csv).collect()
     }
+
+    pub fn lancamentos_adicionar(itens: &Vec<Lancamento>) {
+        let mut lista = Lancamento::lancamentos_listar();
+
+        itens.into_iter().for_each(|novo| {
+            if !lista.iter().any(|a| a.id == novo.id) {
+                lista.push(novo.clone());
+            }
+        });
+
+        Lancamento::lancamentos_salvar(&lista);
+    }
     
     pub fn lancamentos_salvar(itens: &Vec<Lancamento>) {
         arq_escrever(
