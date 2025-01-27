@@ -2,11 +2,10 @@ use chrono::NaiveDate;
 
 use super::CSV;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct ParcelaDivida {
     pub num_parcela: i32,
     pub valor: f64,
-    pub valor_pago: f64,
     pub pago: bool,
     pub data_vencimento: NaiveDate,
 }
@@ -21,9 +20,8 @@ impl CSV for ParcelaDivida {
         ParcelaDivida {
             num_parcela: value[0].parse().unwrap(),
             valor: value[1].parse().unwrap(),
-            valor_pago: value[2].parse().unwrap(),
-            pago: value[3].eq("true"),
-            data_vencimento: NaiveDate::parse_from_str(&value[4], "%Y-%m-%d").unwrap(),
+            pago: value[2].eq("true"),
+            data_vencimento: NaiveDate::parse_from_str(&value[3], "%Y-%m-%d").unwrap(),
         }
     }
 
@@ -32,7 +30,6 @@ impl CSV for ParcelaDivida {
 
         resp.push(self.num_parcela.to_string());
         resp.push(self.valor.to_string());
-        resp.push(self.valor_pago.to_string());
         resp.push(if self.pago { "true".to_string() }else{ "false".to_string() });
         resp.push(self.data_vencimento.format("%Y-%m-%d").to_string());
 

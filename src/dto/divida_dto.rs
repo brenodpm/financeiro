@@ -1,10 +1,12 @@
+use chrono::NaiveDate;
 
 use super::{gerar_sha1, ParcelaDivida, Unico, CSV};
 
-#[derive(Clone)]
+#[derive(Clone, Default, PartialEq)]
 pub struct Divida {
     pub id: String,
     pub nome: String,
+    pub cobranca_automatica: bool,
     pub parcelas: Vec<ParcelaDivida>,
 }
 
@@ -12,10 +14,41 @@ pub trait DadosDivida {
     fn primeira(&self) -> ParcelaDivida;
     fn ultima(&self) -> ParcelaDivida;
     fn valor_total(&self) -> f64;
-    fn quant(&self) -> usize;
+    fn quant(&self) -> i32;
 }
 
 impl Divida {
+    pub fn new(
+        nome: String,
+        cobranca_automatica:bool,
+        quant: i32,
+        valor: f64,
+        dt_inicio: NaiveDate,
+        quant_ja_pago: i32,
+    ) -> Self {
+        let mut divida = Divida {
+            id: String::new(),
+            nome,
+            cobranca_automatica,
+            parcelas: Vec::new(),
+        };
+
+        for i in 1..=quant {
+            divida.parcelas.push(ParcelaDivida {
+                num_parcela: i,
+                valor,
+                pago: i <= quant_ja_pago,
+                data_vencimento: dt_inicio
+                    .clone()
+                    .checked_add_months(chrono::Months::new((i as u32) - 1))
+                    .unwrap(),
+            });
+        }
+
+        divida.gerar_id();
+        divida
+    }
+
     pub fn pagas(&self) -> Vec<ParcelaDivida> {
         self.parcelas
             .clone()
@@ -52,8 +85,8 @@ impl DadosDivida for Vec<ParcelaDivida> {
         self.iter().map(|v| v.valor).sum()
     }
 
-    fn quant(&self) -> usize {
-        self.len()
+    fn quant(&self) -> i32 {
+        self.len() as i32
     }
 }
 
@@ -79,7 +112,8 @@ impl CSV for Divida {
         Divida {
             id: value[0].clone(),
             nome: value[1].clone(),
-            parcelas: get_parcelas_csv(value.clone().drain(2..).collect()),
+            cobranca_automatica: value[2].parse::<bool>().unwrap(),
+            parcelas: get_parcelas_csv(value.clone().drain(3..).collect()),
         }
     }
 
@@ -88,6 +122,7 @@ impl CSV for Divida {
 
         resp.push(self.id.clone());
         resp.push(self.nome.clone());
+        resp.push(self.cobranca_automatica.to_string());
 
         self.parcelas.iter().for_each(|p| {
             resp.push(p.to_csv());

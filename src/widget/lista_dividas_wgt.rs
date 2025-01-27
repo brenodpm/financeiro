@@ -18,6 +18,8 @@ use ratatui::{
     DefaultTerminal,
 };
 
+use super::divida_wgt::EditarDivida;
+
 const TODO_HEADER_STYLE: Style = Style::new().fg(SLATE.c100).bg(BLUE.c800);
 const NORMAL_ROW_BG: Color = SLATE.c950;
 const ALT_ROW_BG_COLOR: Color = SLATE.c900;
@@ -47,13 +49,13 @@ impl ListaDividas {
         while !self.sair {
             terminal.draw(|frame| frame.render_widget(&mut self, frame.area()))?;
             if let Event::Key(key) = event::read()? {
-                self.handle_key(key);
+                self.handle_key(key, terminal);
             };
         }
         Ok(())
     }
 
-    pub fn handle_key(&mut self, key: KeyEvent) {
+    pub fn handle_key(&mut self, key: KeyEvent, terminal: &mut DefaultTerminal) {
         if key.kind != KeyEventKind::Press {
             return;
         }
@@ -61,7 +63,8 @@ impl ListaDividas {
             KeyCode::Esc => self.sair = true,
             KeyCode::Down => self.select_next(),
             KeyCode::Up => self.select_previous(),
-            //KeyCode::Right | KeyCode::Enter => self.selecionar(terminal),
+            KeyCode::Char('n') | KeyCode::Char('N') => self.nova_divida(terminal),
+            KeyCode::Right | KeyCode::Enter => self.alterar_divida(terminal),
             _ => {}
         }
     }
@@ -72,6 +75,34 @@ impl ListaDividas {
 
     fn select_previous(&mut self) {
         self.state.select_previous();
+    }
+
+    fn nova_divida(&mut self, terminal: &mut DefaultTerminal) {
+        match EditarDivida::new().run(terminal).unwrap() {
+            Some(divida) => {
+                divida.salvar();
+                self.dividas = Divida::listar();
+
+                if let Some(i) = self.dividas.iter().position(|a| a.id == divida.id) {
+                    self.state.select(Some(i));
+                    self.alterar_divida(terminal);
+                }
+            }
+            None => {}
+        }
+    }
+
+    fn alterar_divida(&mut self, terminal: &mut DefaultTerminal) {
+        if let Some(i) = self.state.selected() {
+            let divida = self.dividas[i].clone();
+            match EditarDivida::from(&divida).run(terminal).unwrap() {
+                Some(divida) => {
+                    divida.salvar();
+                    self.dividas = Divida::listar();
+                }
+                None => {}
+            }
+        }
     }
 }
 
@@ -145,13 +176,37 @@ impl ListaDividas {
             let mut info: Vec<String> = Vec::new();
             let divida = self.dividas[i].clone();
 
-            info.push(divida.nome.clone());
+            info.push(format!(
+                "{}{}",
+                divida.nome.clone(),
+                if divida.cobranca_automatica {
+                    " (Cobrança automática)"
+                } else {
+                    ""
+                }
+            ));
             info.push("".to_string());
-            info.push(format!("--------------------------------------------------------------------"));
-            info.push(format!("{:0>2} parcelas abertas       total de R$ {:0.02}", divida.aberta().quant(), divida.aberta().valor_total()));
-            info.push(format!("{:0>2} parcelas fechadas      total de R$ {:0.02}", divida.pagas().quant(), divida.pagas().valor_total()));
-            info.push(format!("{:0>2} parcelas total         total de R$ {:0.02}", divida.parcelas.quant(), divida.parcelas.valor_total()));
-            info.push(format!("--------------------------------------------------------------------"));
+            info.push(format!(
+                "--------------------------------------------------------------------"
+            ));
+            info.push(format!(
+                "{:0>2} parcelas abertas       total de R$ {:0.02}",
+                divida.aberta().quant(),
+                divida.aberta().valor_total()
+            ));
+            info.push(format!(
+                "{:0>2} parcelas fechadas      total de R$ {:0.02}",
+                divida.pagas().quant(),
+                divida.pagas().valor_total()
+            ));
+            info.push(format!(
+                "{:0>2} parcelas total         total de R$ {:0.02}",
+                divida.parcelas.quant(),
+                divida.parcelas.valor_total()
+            ));
+            info.push(format!(
+                "--------------------------------------------------------------------"
+            ));
             info.push("".to_string());
             info.push("".to_string());
 
@@ -209,7 +264,7 @@ impl From<&Divida> for ListItem<'_> {
     fn from(divida: &Divida) -> Self {
         let now = Utc::now().naive_utc().date();
         let ult_parcela = divida.prox_parcela();
-        let desc = if divida.parcelas.quant() == 1usize {
+        let desc = if divida.parcelas.quant() == 1 {
             divida.nome.clone()
         } else {
             format!(

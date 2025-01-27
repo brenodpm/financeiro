@@ -6,18 +6,10 @@ mod widget;
 
 use app::App;
 use color_eyre::eyre::Result;
-use dto::{Banco, Lancamento};
-use std::{fs::create_dir_all, path::PathBuf, sync::Once};
+use dto::{Banco, Divida, Lancamento};
+use std::{fs::create_dir_all, path::PathBuf, sync::LazyLock};
 
-static INIT: Once = Once::new();
-static mut HOME_DIR: Option<PathBuf> = None;
-pub fn init_home_dir() {
-    unsafe {
-        INIT.call_once(|| {
-            HOME_DIR = Some(get_home_dir_path());
-        });
-    }
-}
+static HOME_DIR: LazyLock<PathBuf> = LazyLock::new(|| get_home_dir_path());
 
 #[cfg(debug_assertions)]
 fn get_home_dir_path() -> PathBuf {
@@ -36,7 +28,7 @@ fn get_home_dir_path() -> PathBuf {
 }
 
 pub fn get_home_dir() -> PathBuf {
-    unsafe { HOME_DIR.clone().expect("HOME_DIR not initialized") }
+    HOME_DIR.clone()
 }
 
 fn preparar_diretorios() {
@@ -50,12 +42,13 @@ fn preparar_diretorios() {
 }
 
 fn main() {
-    init_home_dir();
+    //init_home_dir();
     config_log::config();
     log::info!("Início");
 
     preparar_diretorios();
     importar();
+    Divida::atualizar();
 
     start_tui().unwrap_or_else(|e| log::error!("Falha ao executar o terminal: {e:?}"));
     log::info!("Finalizado");
