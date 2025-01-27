@@ -378,9 +378,9 @@ impl EditarDivida {
 
     fn salvar_alteracao(&mut self) {
         self.divida.nome = self.nome.to_string();
-        self.divida.cobranca_automatica = self.cobranca_auto.valor;
+        self.divida.cobranca_automatica = self.cobranca_auto.get_checked();
 
-        if self.quitar.valor {
+        if self.quitar.get_checked() {
             for parcela in self.divida.parcelas.iter_mut() {
                 parcela.pago = true;
             }
@@ -394,7 +394,7 @@ impl EditarDivida {
             Ok(data) => {
                 self.status = Status::Sair(Some(Divida::new(
                     self.nome.to_string(),
-                    self.cobranca_auto.valor,
+                    self.cobranca_auto.get_checked(),
                     self.quant.to_i32(),
                     self.valor.to_f64(),
                     data,

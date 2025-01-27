@@ -31,7 +31,19 @@ pub fn arq_ler(dir: &str, file: &str) -> Flatten<Lines<BufReader<File>>> {
     BufReader::new(File::open(&path).unwrap()).lines().flatten()
 }
 
-pub fn arq_escrever(dir: &str, file: &str, linhas: &Vec<String>) {
+pub fn arq_escrever(dir: &str, file: &str, texto: String) {
+    let mut path = get_home_dir();
+    path.push(&dir);
+    checar_dir(&path);
+
+    path.push(&file);
+    checar_arq(&path);
+
+    write(path, texto)
+        .expect("Falha ao escrever no arquivo");
+}
+
+pub fn arq_escrever_linhas(dir: &str, file: &str, linhas: &Vec<String>) {
     let mut path = get_home_dir();
     path.push(&dir);
     checar_dir(&path);

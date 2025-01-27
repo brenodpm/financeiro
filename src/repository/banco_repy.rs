@@ -2,7 +2,7 @@ use itertools::Itertools;
 
 use crate::dto::{Banco, Conta, CSV};
 
-use super::file_repy::{arq_escrever, arq_ler};
+use super::file_repy::{arq_escrever_linhas, arq_ler};
 
 const FIN: &str = ".financeiro";
 const BANC: &str = "bancos.csv";
@@ -41,7 +41,7 @@ impl Banco {
             });
         });
 
-        arq_escrever(
+        arq_escrever_linhas(
             FIN,
             BANC,
             &bancos
@@ -51,7 +51,7 @@ impl Banco {
                 .collect(),
         );
 
-        arq_escrever(
+        arq_escrever_linhas(
             FIN,
             CONT,
             &contas

@@ -1,6 +1,6 @@
 use crate::dto::{Categoria, FluxoRegra, Lazy, LazyFn, Regra, CSV};
 
-use super::file_repy::{arq_escrever, arq_ler};
+use super::file_repy::{arq_escrever_linhas, arq_ler};
 
 const FIN: &str = ".financeiro";
 const REGRAS: &str = "regras.csv";
@@ -47,7 +47,7 @@ impl Regra {
 fn salvar(mut regras: Vec<Regra>) {
     regras.sort_by(|a, b| b.regex.len().cmp(&a.regex.len()));
 
-    arq_escrever(
+    arq_escrever_linhas(
         FIN,
         REGRAS,
         &regras.into_iter().map(|r| r.to_csv()).collect(),

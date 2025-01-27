@@ -1,6 +1,6 @@
 use crate::dto::{Lancamento, CSV};
 
-use super::file_repy::{arq_escrever, arq_ler};
+use super::file_repy::{arq_escrever_linhas, arq_ler};
 
 const FIN: &str = ".financeiro";
 const NAO_CAT: &str = "nao-cat.csv";
@@ -30,7 +30,7 @@ impl Lancamento {
     }
 
     pub fn nao_categorizados_salvar(itens: &Vec<Lancamento>) {
-        arq_escrever(
+        arq_escrever_linhas(
             FIN,
             NAO_CAT,
             &itens.into_iter().map(|i| i.to_csv()).collect(),
@@ -54,7 +54,7 @@ impl Lancamento {
     }
     
     pub fn lancamentos_salvar(itens: &Vec<Lancamento>) {
-        arq_escrever(
+        arq_escrever_linhas(
             FIN,
             LANCAMENTOS,
             &itens.into_iter().map(|i| i.to_csv()).collect(),

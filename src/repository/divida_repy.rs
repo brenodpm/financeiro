@@ -2,7 +2,7 @@ use itertools::Itertools;
 
 use crate::dto::{Divida, CSV};
 
-use super::file_repy::{arq_escrever, arq_ler};
+use super::file_repy::{arq_escrever_linhas, arq_ler};
 
 const FIN: &str = ".financeiro";
 const CAT: &str = "dividas.csv";
@@ -30,7 +30,7 @@ impl Divida {
             lista.push(self.clone());
         }
 
-        arq_escrever(FIN, CAT, &lista.into_iter().map(|i| i.to_csv()).collect())
+        arq_escrever_linhas(FIN, CAT, &lista.into_iter().map(|i| i.to_csv()).collect())
     }
 
     pub fn atualizar() {
@@ -49,6 +49,6 @@ impl Divida {
             }
         }
 
-        arq_escrever(FIN, CAT, &lista.into_iter().map(|i| i.to_csv()).collect())
+        arq_escrever_linhas(FIN, CAT, &lista.into_iter().map(|i| i.to_csv()).collect())
     }
 }

@@ -16,11 +16,18 @@ use ratatui::{
 use super::{estilo_input, estilo_input_foco, fg_color};
 
 pub struct Check {
-    pub nome: String,
-    pub valor: bool,
+    nome: String,
+    valor: bool,
 }
 
 impl Check {
+    pub fn get_checked(&self) -> bool {
+        self.valor
+    }
+    pub fn set_checked(&mut self, valor: bool) {
+        self.valor = valor;
+    }
+
     pub fn new(nome: &str, valor: bool) -> Self {
         Check {
             nome: nome.to_string(),
