@@ -3,32 +3,22 @@ use ratatui::{
     buffer::Buffer,
     crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind},
     layout::{Constraint, Layout, Rect},
-    style::{
-        palette::tailwind::{BLUE, SLATE},
-        Color, Modifier, Style, Stylize,
-    },
-    symbols,
-    text::{Line, ToText},
+    style::
+        Stylize
+    ,
     widgets::{
-        Block, Borders, HighlightSpacing, List, ListItem, ListState, Paragraph, StatefulWidget,
-        Widget,
+        Paragraph, Widget,
     },
     DefaultTerminal,
 };
-use sha1::digest::typenum::Same;
 
-use crate::dto::{Banco, Categoria, Conta, Meta, TipoFluxo, Unico};
+use crate::dto::{Banco, Categoria, Meta, Unico};
 
 use super::{
-    alternate_colors,
     check_wgt::Check,
     input_wgt::Input,
     lista_suspensa::{ItemListaSuspensa, ListaSuspensa},
 };
-
-const SELECTED_STYLE: Style = Style::new().bg(SLATE.c800).add_modifier(Modifier::BOLD);
-const TODO_HEADER_STYLE: Style = Style::new().fg(SLATE.c100).bg(BLUE.c800);
-const NORMAL_ROW_BG: Color = SLATE.c950;
 
 #[derive(PartialEq)]
 enum Status {
@@ -61,10 +51,7 @@ pub struct EditarMeta {
     fluxo: ListaSuspensa,
     metrica: ListaSuspensa,
     periodo: ListaSuspensa,
-    valor: Input,
-
-    selecao: Vec<String>,
-    state: ListState,
+    valor: Input
 }
 
 impl Widget for &mut EditarMeta {
@@ -113,10 +100,7 @@ impl EditarMeta {
             fluxo: ListaSuspensa::new_string("Fluxo", fluxos),
             metrica: ListaSuspensa::new_string("Métrica", metrica),
             periodo: ListaSuspensa::new_string("Período", periodos),
-            valor: Input::new_monetario("Valor", 0.0f64),
-
-            selecao: Vec::new(),
-            state: ListState::default(),
+            valor: Input::new_monetario("Valor", 0.0f64)
         }
     }
 

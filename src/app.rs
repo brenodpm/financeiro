@@ -1,7 +1,7 @@
 use color_eyre::eyre::Result;
 use ratatui::DefaultTerminal;
 
-use crate::{dto::Meta, widget::{Categorizador, GeradorDash, ListaDividas, ListaMeta, Menu}};
+use crate::widget::{Categorizador, GeradorDash, ListaDividas, ListaMeta, Menu};
 
 #[derive(Clone)]
 pub enum Etapa {

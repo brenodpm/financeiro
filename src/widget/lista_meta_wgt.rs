@@ -4,7 +4,7 @@ use ratatui::{
     crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind},
     layout::{Constraint, Layout, Rect},
     style::{
-        palette::tailwind::{BLUE, GREEN, RED, SLATE},
+        palette::tailwind::{BLUE, SLATE},
         Color, Modifier, Style, Stylize,
     },
     symbols,

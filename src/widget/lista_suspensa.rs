@@ -1,14 +1,11 @@
-use std::fmt::{self, Formatter};
-
-use color_eyre::owo_colors::colors::css::SeaGreen;
 use ratatui::{
     buffer::Buffer,
     crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind},
-    layout::{Constraint, Layout, Rect},
+    layout::Rect,
     style::{
         palette::{
             material::BLUE,
-            tailwind::{SLATE, WHITE},
+            tailwind::SLATE,
         },
         Color, Modifier, Style, Stylize,
     },
@@ -34,7 +31,6 @@ pub struct ListaSuspensa {
     pub nome: String,
     lista: Vec<ItemListaSuspensa>,
 
-    sair: bool,
     selecionado: usize,
     modo_lista: bool,
     modo_lista_state: ListState,
@@ -81,7 +77,6 @@ impl ListaSuspensa {
     pub fn new(nome: &str, itens: Vec<ItemListaSuspensa>) -> Self {
         ListaSuspensa {
             nome: nome.to_string(),
-            sair: false,
             selecionado: 0usize,
             lista: itens,
             modo_lista: false,
@@ -91,7 +86,6 @@ impl ListaSuspensa {
     pub fn new_string(nome: &str, itens: Vec<&str>) -> Self {
         ListaSuspensa {
             nome: nome.to_string(),
-            sair: false,
             selecionado: 0usize,
             lista: itens
                 .iter()
@@ -205,13 +199,13 @@ impl ListaSuspensa {
                 .draw(|frame| frame.render_widget(&mut self, frame.area()))
                 .unwrap();
             if let Event::Key(key) = event::read().unwrap() {
-                self.modo_lista_handle_key(key, terminal);
+                self.modo_lista_handle_key(key);
             };
         }
         self.selecionado
     }
 
-    pub fn modo_lista_handle_key(&mut self, key: KeyEvent, terminal: &mut DefaultTerminal) {
+    pub fn modo_lista_handle_key(&mut self, key: KeyEvent) {
         if key.kind != KeyEventKind::Press {
             return;
         }
