@@ -3,6 +3,7 @@ mod config_log;
 mod dto;
 mod repository;
 mod widget;
+mod estilo;
 
 use app::App;
 use color_eyre::eyre::Result;

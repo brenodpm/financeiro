@@ -18,7 +18,7 @@ use ratatui::{
     DefaultTerminal,
 };
 
-use super::{alternate_colors, estilo_input, estilo_input_foco, fg_color};
+use crate::estilo::{alternate_colors, estilo_input, estilo_input_foco, fg_color};
 
 #[derive(Clone)]
 pub struct ItemListaSuspensa {

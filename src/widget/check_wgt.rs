@@ -13,7 +13,7 @@ use ratatui::{
     },
 };
 
-use super::{estilo_input, estilo_input_foco, fg_color};
+use crate::estilo::{estilo_input, estilo_input_foco, fg_color};
 
 pub struct Check {
     nome: String,

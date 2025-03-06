@@ -1,4 +1,7 @@
-use crate::dto::{DadosDivida, Divida, ParcelaDivida};
+use crate::{
+    dto::{DadosDivida, Divida, ParcelaDivida},
+    estilo::alternate_colors,
+};
 use color_eyre::Result;
 use ratatui::{
     buffer::Buffer,
@@ -17,7 +20,7 @@ use ratatui::{
     DefaultTerminal,
 };
 
-use super::{alternate_colors, check_wgt::Check, input_wgt::Input};
+use super::{check_wgt::Check, input_wgt::Input};
 
 const TODO_HEADER_STYLE: Style = Style::new().fg(SLATE.c100).bg(BLUE.c800);
 const NORMAL_ROW_BG: Color = SLATE.c950;

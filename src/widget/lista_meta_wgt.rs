@@ -16,9 +16,9 @@ use ratatui::{
     DefaultTerminal,
 };
 
-use crate::dto::Meta;
+use crate::{dto::Meta, estilo::alternate_colors};
 
-use super::{alternate_colors, meta_wgt::EditarMeta};
+use super::meta_wgt::EditarMeta;
 
 const TODO_HEADER_STYLE: Style = Style::new().fg(SLATE.c100).bg(BLUE.c800);
 const NORMAL_ROW_BG: Color = SLATE.c950;
