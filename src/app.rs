@@ -1,12 +1,13 @@
 use color_eyre::eyre::Result;
 use ratatui::DefaultTerminal;
 
-use crate::widget::{GeradorDash, Categorizador, ListaDividas, Menu};
+use crate::{dto::Meta, widget::{Categorizador, GeradorDash, ListaDividas, ListaMeta, Menu}};
 
 #[derive(Clone)]
 pub enum Etapa {
     Categorizar,
     Dividas,
+    Metas,
     Menu,
     Dash,
     Sair,
@@ -30,6 +31,7 @@ impl App {
             items: vec![
                 ("Categorizar".to_string(), Etapa::Categorizar),
                 ("Dívidas".to_string(), Etapa::Dividas),
+                ("Metas".to_string(), Etapa::Metas),
                 ("Gerar Gráfico".to_string(), Etapa::Dash),
                 ("Sair".to_string(), Etapa::Sair),
             ],
@@ -39,10 +41,13 @@ impl App {
 
         loop {
             match self.etapa {
-                Etapa::Categorizar => self.categorizar(&mut terminal),
                 Etapa::Menu => self.menu(&mut terminal, menu.clone()),
+
+                Etapa::Categorizar => self.categorizar(&mut terminal),
+                Etapa::Metas => self.metas(&mut terminal),
                 Etapa::Dividas => self.dividas(&mut terminal),
                 Etapa::Dash => self.dash(&mut terminal),
+                
                 Etapa::Sair => break,
             }
         }
@@ -84,6 +89,16 @@ impl App {
             Ok(_) => {}
             Err(e) => {
                 log::info!("Falha ao abrir dividas: {e}");
+            }
+        }
+        self.etapa = Etapa::Menu
+    }
+
+    fn metas(&mut self, terminal: &mut DefaultTerminal) {
+        match ListaMeta::default().run(terminal) {
+            Ok(_) => {}
+            Err(e) => {
+                log::info!("Falha ao abrir metas: {e}");
             }
         }
         self.etapa = Etapa::Menu

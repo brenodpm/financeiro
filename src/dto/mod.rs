@@ -12,7 +12,9 @@ mod regra_dto;
 mod tipo_despesa_dto;
 mod tipo_fluxo_dto;
 mod parcela_divida_dto;
+mod meta_dto;
 
+pub use meta_dto::Meta;
 pub use banco_dto::Banco;
 pub use categoria_dto::Categoria;
 pub use conta_dto::Conta;

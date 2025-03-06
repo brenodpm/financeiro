@@ -21,6 +21,7 @@ use super::{estilo_input, estilo_input_foco, fg_color};
 #[derive(PartialEq)]
 pub enum TipoValor {
     Texto,
+    MultLinha,
     Data,
     Inteiro,
     Monetario,
@@ -47,6 +48,15 @@ impl Input {
             valor: valor,
 
             tipo: TipoValor::Texto,
+            cursor: 0usize,
+        }
+    }
+    pub fn new_multilinhas(nome: &str, valor: String) -> Self {
+        Input {
+            nome: nome.to_string(),
+            valor: valor,
+
+            tipo: TipoValor::MultLinha,
             cursor: 0usize,
         }
     }
@@ -87,7 +97,7 @@ impl Input {
         resp
     }
 
-    pub fn _set_texto(&mut self, valor: String) {
+    pub fn set_texto(&mut self, valor: String) {
         self.valor = valor;
         self.cursor = 0usize;
     }
@@ -142,15 +152,15 @@ impl Input {
                 estilo_input()
             });
 
-        let mut texto = self.valor.clone();
-        texto.push_str(" ");
         let mut spans = Vec::new();
+        let lines: Vec<&str> = self.valor.split('\n').collect();
 
-        if foco {
-            let mut chars = texto.chars();
+        for (line_idx, line) in lines.iter().enumerate() {
+            let mut line_spans = Vec::new();
+            let mut chars = line.chars();
             for (i, c) in chars.by_ref().enumerate() {
-                if i == self.cursor {
-                    spans.push(Span::styled(
+                if foco && line_idx == 0 && i == self.cursor {
+                    line_spans.push(Span::styled(
                         c.to_string(),
                         Style::default()
                             .fg(fg_color())
@@ -158,14 +168,13 @@ impl Input {
                             .add_modifier(Modifier::BOLD),
                     ));
                 } else {
-                    spans.push(Span::styled(c.to_string(), Style::default().fg(fg_color())));
+                    line_spans.push(Span::styled(c.to_string(), Style::default().fg(fg_color())));
                 }
             }
-        } else {
-            spans.push(Span::styled(texto.clone(), Style::default().fg(fg_color())));
+            spans.push(Line::from(line_spans));
         }
 
-        Paragraph::new(Text::from(Line::from(spans)))
+        Paragraph::new(Text::from(spans))
             .block(block)
             .fg(fg_color())
             .wrap(Wrap { trim: false })
@@ -181,6 +190,9 @@ impl Input {
             KeyCode::Delete => self.deletar(),
             KeyCode::Home => self.inicio(),
             KeyCode::End => self.fim(),
+            KeyCode::Enter => if self.tipo == TipoValor:: MultLinha {
+                self.digitar('\n');
+            }
             _ => {}
         }
     }
