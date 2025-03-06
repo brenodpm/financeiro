@@ -1,15 +1,12 @@
 mod categorizador_wgt;
-mod check_wgt;
 mod confirmar_categorizacao_wgt;
 mod divida_wgt;
-mod input_wgt;
 mod lista_dividas_wgt;
 mod menu_wgt;
 mod selecionar_categoria_wgt;
 mod gerador_dash;
 mod lista_meta_wgt;
 mod meta_wgt;
-mod lista_suspensa;
 
 pub use categorizador_wgt::Categorizador;
 pub use lista_dividas_wgt::ListaDividas;

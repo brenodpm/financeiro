@@ -3,21 +3,18 @@ use ratatui::{
     buffer::Buffer,
     crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind},
     layout::{Constraint, Layout, Rect},
-    style::
-        Stylize
-    ,
-    widgets::{
-        Paragraph, Widget,
-    },
+    style::Stylize,
+    widgets::{Paragraph, Widget},
     DefaultTerminal,
 };
 
-use crate::dto::{Banco, Categoria, Meta, Unico};
-
-use super::{
-    check_wgt::Check,
-    input_wgt::Input,
-    lista_suspensa::{ItemListaSuspensa, ListaSuspensa},
+use crate::{
+    componentes::{
+        check_wgt::Check,
+        input_wgt::Input,
+        lista_suspensa::{ItemListaSuspensa, ListaSuspensa},
+    },
+    dto::{Banco, Categoria, Meta, Unico},
 };
 
 #[derive(PartialEq)]
@@ -51,7 +48,7 @@ pub struct EditarMeta {
     fluxo: ListaSuspensa,
     metrica: ListaSuspensa,
     periodo: ListaSuspensa,
-    valor: Input
+    valor: Input,
 }
 
 impl Widget for &mut EditarMeta {
@@ -75,7 +72,7 @@ impl EditarMeta {
 
         let fluxos = vec!["entrada", "saída"];
 
-        let metrica = vec![ "menor que", "marior que"];
+        let metrica = vec!["menor que", "marior que"];
 
         let periodos = vec![
             "mensal",
@@ -100,11 +97,11 @@ impl EditarMeta {
             fluxo: ListaSuspensa::new_string("Fluxo", fluxos),
             metrica: ListaSuspensa::new_string("Métrica", metrica),
             periodo: ListaSuspensa::new_string("Período", periodos),
-            valor: Input::new_monetario("Valor", 0.0f64)
+            valor: Input::new_monetario("Valor", 0.0f64),
         }
     }
 
-    pub fn set(meta: Meta)-> Self{
+    pub fn set(meta: Meta) -> Self {
         let mut resp = Self::new();
 
         resp.id_meta = meta.id;

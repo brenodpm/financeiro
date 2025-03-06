@@ -8,9 +8,7 @@ use ratatui::{
     DefaultTerminal,
 };
 
-use crate::repository::atualizar_base;
-
-use super::check_wgt::Check;
+use crate::{componentes::check_wgt::Check, repository::atualizar_base};
 
 #[derive(PartialEq)]
 enum Etapa {

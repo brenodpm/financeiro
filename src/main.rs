@@ -4,6 +4,7 @@ mod dto;
 mod repository;
 mod widget;
 mod estilo;
+mod componentes;
 
 use app::App;
 use color_eyre::eyre::Result;

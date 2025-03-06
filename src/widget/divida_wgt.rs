@@ -1,4 +1,5 @@
 use crate::{
+    componentes::{check_wgt::Check, input_wgt::Input},
     dto::{DadosDivida, Divida, ParcelaDivida},
     estilo::alternate_colors,
 };
@@ -19,8 +20,6 @@ use ratatui::{
     },
     DefaultTerminal,
 };
-
-use super::{check_wgt::Check, input_wgt::Input};
 
 const TODO_HEADER_STYLE: Style = Style::new().fg(SLATE.c100).bg(BLUE.c800);
 const NORMAL_ROW_BG: Color = SLATE.c950;
