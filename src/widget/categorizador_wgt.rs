@@ -17,15 +17,10 @@ use ratatui::{
 };
 use std::collections::HashMap;
 
-use crate::dto::{Categoria, FluxoRegra, Lancamento, Lazy, NovaRegra, Regra, TipoFluxo, Unico};
+use crate::{dto::{Categoria, FluxoRegra, Lancamento, Lazy, NovaRegra, Regra, TipoFluxo, Unico}, estilo::{alternate_colors, principal_comandos, principal_titulo, GERAL_BG, GERAL_TEXT_FG, LISTA_BORDA_ESTILO, LISTA_SELECIONADO_ESTILO}};
 
 use super::{confirmar_categorizacao_wgt::ConfirmarCategorias, SelecionarCategoria};
 
-const TODO_HEADER_STYLE: Style = Style::new().fg(SLATE.c100).bg(BLUE.c800);
-const NORMAL_ROW_BG: Color = SLATE.c950;
-const ALT_ROW_BG_COLOR: Color = SLATE.c900;
-const SELECTED_STYLE: Style = Style::new().bg(SLATE.c800).add_modifier(Modifier::BOLD);
-const TEXT_FG_COLOR: Color = SLATE.c200;
 const COMPLETED_TEXT_FG_COLOR: Color = GREEN.c500;
 
 pub struct Categorizador {
@@ -192,44 +187,32 @@ impl Categorizador {
 
 impl Widget for &mut Categorizador {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let [header_area, main_area, footer_area] = Layout::vertical([
+        let [titulo, corpo, rodape] = Layout::vertical([
             Constraint::Length(2),
             Constraint::Fill(1),
             Constraint::Length(1),
         ])
         .areas(area);
 
+        principal_titulo("Categorizador",titulo, buf);
+        principal_comandos(vec!["↓↑ (mover)", "ENTER (selecionar categoria)", "INSERT (efetivar)", "ESC (sair)"], rodape, buf);
+        
         let [list_area, item_area] =
-            Layout::vertical([Constraint::Fill(1), Constraint::Fill(1)]).areas(main_area);
+            Layout::vertical([Constraint::Fill(1), Constraint::Fill(1)]).areas(corpo);
 
-        Categorizador::render_header(header_area, buf);
-        Categorizador::render_footer(footer_area, buf);
         self.render_list(list_area, buf);
         self.render_selected_item(item_area, buf);
     }
 }
 
 impl Categorizador {
-    fn render_header(area: Rect, buf: &mut Buffer) {
-        Paragraph::new("Financeiro")
-            .bold()
-            .centered()
-            .render(area, buf);
-    }
-
-    fn render_footer(area: Rect, buf: &mut Buffer) {
-        Paragraph::new("Use ↓↑ mover, → selecionar categoria, INSERT categorizar, ESC sair")
-            .centered()
-            .render(area, buf);
-    }
-
     fn render_list(&mut self, area: Rect, buf: &mut Buffer) {
         let block = Block::new()
             .title(Line::raw(format!("Categorizar {} itens", self.items.len())).centered())
             .borders(Borders::TOP)
             .border_set(symbols::border::EMPTY)
-            .border_style(TODO_HEADER_STYLE)
-            .bg(NORMAL_ROW_BG);
+            .border_style(LISTA_BORDA_ESTILO)
+            .bg(GERAL_BG);
 
         // Iterate through all elements in the `items` and stylize them.
         let items: Vec<ListItem> = self
@@ -245,7 +228,7 @@ impl Categorizador {
         // Create a List from all list items and highlight the currently selected one
         let list = List::new(items)
             .block(block)
-            .highlight_style(SELECTED_STYLE)
+            .highlight_style(LISTA_SELECIONADO_ESTILO)
             .highlight_symbol("▶")
             .highlight_spacing(HighlightSpacing::Always);
 
@@ -289,24 +272,15 @@ impl Categorizador {
             .title(Line::raw("Lançamentos").centered())
             .borders(Borders::TOP)
             .border_set(symbols::border::EMPTY)
-            .border_style(TODO_HEADER_STYLE)
-            .bg(NORMAL_ROW_BG)
-            .padding(Padding::horizontal(1));
+            .border_style(LISTA_BORDA_ESTILO)
+            .bg(GERAL_BG);
 
         // We can now render the item info
         Paragraph::new(info)
             .block(block)
-            .fg(TEXT_FG_COLOR)
+            .fg(GERAL_TEXT_FG)
             .wrap(Wrap { trim: false })
             .render(area, buf);
-    }
-}
-
-const fn alternate_colors(i: usize) -> Color {
-    if i % 2 == 0 {
-        NORMAL_ROW_BG
-    } else {
-        ALT_ROW_BG_COLOR
     }
 }
 
@@ -326,7 +300,7 @@ impl From<&NovaRegra> for ListItem<'_> {
                     fluxo,
                     value.regex
                 ),
-                TEXT_FG_COLOR,
+                GERAL_TEXT_FG,
             ),
             Some(_) => Line::styled(
                 format!(
