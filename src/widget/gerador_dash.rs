@@ -8,7 +8,11 @@ use ratatui::{
     DefaultTerminal,
 };
 
-use crate::{componentes::check_wgt::Check, repository::atualizar_base};
+use crate::{
+    componentes::check_wgt::Check,
+    estilo::{principal_comandos, principal_titulo},
+    repository::atualizar_base,
+};
 
 #[derive(PartialEq)]
 enum Etapa {
@@ -27,16 +31,25 @@ pub struct GeradorDash {
 
 impl Widget for &mut GeradorDash {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let [header_area, main_area, footer_area] = Layout::vertical([
+        let [titulo, corpo, rodape] = Layout::vertical([
             Constraint::Length(2),
             Constraint::Fill(1),
             Constraint::Length(1),
         ])
         .areas(area);
 
-        GeradorDash::render_header(header_area, buf);
-        self.render_footer(footer_area, buf);
-        self.render_list(main_area, buf);
+        principal_titulo("Gerador de Dashboard", titulo, buf);
+        principal_comandos(
+            match self.etapa {
+                Etapa::Iniciando => vec!["Iniciando..."],
+                Etapa::Base => vec!["Atualizando base dos gráficos"],
+                Etapa::Finalizado => vec!["Pressione qualquer tecla para sair"],
+                Etapa::Sair => vec!["Saindo..."],
+            },
+            rodape,
+            buf,
+        );
+        self.render_list(corpo, buf);
     }
 }
 
@@ -67,13 +80,6 @@ impl GeradorDash {
         if key.kind == KeyEventKind::Press {
             self.etapa = Etapa::Sair
         }
-    }
-
-    fn render_header(area: Rect, buf: &mut Buffer) {
-        Paragraph::new("Financeiro")
-            .bold()
-            .centered()
-            .render(area, buf);
     }
 
     fn render_footer(&self, area: Rect, buf: &mut Buffer) {
