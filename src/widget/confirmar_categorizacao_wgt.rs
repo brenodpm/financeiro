@@ -1,8 +1,7 @@
 use crate::{
     dto::{
         Categoria, FluxoRegra, Lancamento, Lazy, LazyFn, OptionalLazy, OptionalLazyFn, Regra, TipoFluxo, Unico
-    },
-    repository::Buscar,
+    }, estilo::alternate_colors, repository::Buscar
 };
 use color_eyre::Result;
 use itertools::Itertools;
@@ -20,10 +19,6 @@ use ratatui::{
 };
 
 use super::SelecionarCategoria;
-
-const NORMAL_ROW_BG: Color = SLATE.c950;
-const ALT_ROW_BG_COLOR: Color = SLATE.c900;
-const _COMPLETED_TEXT_FG_COLOR: Color = GREEN.c500;
 
 pub struct ConfirmarCategorias {
     pub should_exit: bool,
@@ -261,11 +256,8 @@ impl ConfirmarCategorias {
         ];
 
         let table = Table::new(rows, widths)
-            //.row_highlight_style(Style::new().reversed())
             .highlight_symbol("▶ ");
 
-        // We need to disambiguate this trait method as both `Widget` and `StatefulWidget` share the
-        // same method name `render`.
         StatefulWidget::render(table, area, buf, &mut self.state);
     }
 }
@@ -273,7 +265,7 @@ impl ConfirmarCategorias {
 fn cores(i: usize, selected: usize, valor: f64) -> (Color, Color, Color) {
     if i == selected {
         (
-            SLATE.c800,
+            SLATE.c600,
             WHITE,
             if valor > 0f64 { GREEN.c500 } else { RED.c500 },
         )
@@ -283,13 +275,5 @@ fn cores(i: usize, selected: usize, valor: f64) -> (Color, Color, Color) {
             SLATE.c300,
             if valor > 0f64 { GREEN.c200 } else { RED.c200 },
         )
-    }
-}
-
-const fn alternate_colors(i: usize) -> Color {
-    if i % 2 == 0 {
-        NORMAL_ROW_BG
-    } else {
-        ALT_ROW_BG_COLOR
     }
 }
