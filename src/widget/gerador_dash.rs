@@ -3,8 +3,7 @@ use ratatui::{
     buffer::Buffer,
     crossterm::event::{self, Event, KeyEvent, KeyEventKind},
     layout::{Constraint, Layout, Rect},
-    style::Stylize,
-    widgets::{Paragraph, Widget},
+    widgets::Widget,
     DefaultTerminal,
 };
 
@@ -80,16 +79,6 @@ impl GeradorDash {
         if key.kind == KeyEventKind::Press {
             self.etapa = Etapa::Sair
         }
-    }
-
-    fn render_footer(&self, area: Rect, buf: &mut Buffer) {
-        let texto = match self.etapa {
-            Etapa::Iniciando => "Iniciando...",
-            Etapa::Base => "Atualizando base dos gráficos",
-            Etapa::Finalizado => "Pressione qualquer tecla para sair",
-            Etapa::Sair => "Saindo...",
-        };
-        Paragraph::new(texto).centered().render(area, buf);
     }
 
     fn render_list(&mut self, area: Rect, buf: &mut Buffer) {
