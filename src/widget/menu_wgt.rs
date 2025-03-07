@@ -71,20 +71,20 @@ impl Menu {
 
 impl Widget for &mut Menu {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let [header_area, main_area, footer_area] = Layout::vertical([
+        let [titulo, corpo, rodape] = Layout::vertical([
             Constraint::Length(2),
             Constraint::Fill(1),
             Constraint::Length(1),
         ])
         .areas(area);
 
-        principal_titulo(header_area, buf);
+        principal_titulo("Financeiro",titulo, buf);
         principal_comandos(
             vec!["↓↑ mover", "→ selecionar", "ESC Sair"],
-            footer_area,
+            rodape,
             buf,
         );
-        self.render_list(main_area, buf);
+        self.render_list(corpo, buf);
     }
 }
 

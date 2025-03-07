@@ -17,8 +17,8 @@ pub const GERAL_TEXT_FG: Color = SLATE.c200;
 /********************************************************************
  *                             PRINCIPAL
  ********************************************************************/
-pub fn principal_titulo(area: Rect, buf: &mut Buffer) {
-    Paragraph::new("Financeiro")
+pub fn principal_titulo(titulo:&str, area: Rect, buf: &mut Buffer) {
+    Paragraph::new(titulo)
         .bold()
         .centered()
         .fg(SLATE.c100)
