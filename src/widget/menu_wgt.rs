@@ -3,26 +3,22 @@ use ratatui::{
     buffer::Buffer,
     crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind},
     layout::{Constraint, Layout, Rect},
-    style::{
-        palette::tailwind::{BLUE, SLATE},
-        Color, Modifier, Style, Stylize,
-    },
+    style::Stylize,
     symbols,
     text::Line,
     widgets::{
-        Block, Borders, HighlightSpacing, List, ListItem, ListState, Paragraph, StatefulWidget,
-        Widget,
+        Block, Borders, HighlightSpacing, List, ListItem, ListState, StatefulWidget, Widget,
     },
     DefaultTerminal,
 };
 
-use crate::app::Etapa;
-
-const TODO_HEADER_STYLE: Style = Style::new().fg(SLATE.c100).bg(BLUE.c800);
-const NORMAL_ROW_BG: Color = SLATE.c950;
-const ALT_ROW_BG_COLOR: Color = SLATE.c900;
-const SELECTED_STYLE: Style = Style::new().bg(SLATE.c800).add_modifier(Modifier::BOLD);
-const TEXT_FG_COLOR: Color = SLATE.c200;
+use crate::{
+    app::Etapa,
+    estilo::{
+        alternate_colors, principal_comandos, principal_titulo, GERAL_BG, GERAL_TEXT_FG,
+        LISTA_BORDA_ESTILO, LISTA_SELECIONADO_ESTILO,
+    },
+};
 
 #[derive(Clone)]
 pub struct Menu {
@@ -82,33 +78,24 @@ impl Widget for &mut Menu {
         ])
         .areas(area);
 
-        Menu::render_header(header_area, buf);
-        Menu::render_footer(footer_area, buf);
+        principal_titulo(header_area, buf);
+        principal_comandos(
+            vec!["↓↑ mover", "→ selecionar", "ESC Sair"],
+            footer_area,
+            buf,
+        );
         self.render_list(main_area, buf);
     }
 }
 
 impl Menu {
-    fn render_header(area: Rect, buf: &mut Buffer) {
-        Paragraph::new("Financeiro")
-            .bold()
-            .centered()
-            .render(area, buf);
-    }
-
-    fn render_footer(area: Rect, buf: &mut Buffer) {
-        Paragraph::new("Use ↓↑ mover, → selecionar categoria, ESC sair")
-            .centered()
-            .render(area, buf);
-    }
-
     fn render_list(&mut self, area: Rect, buf: &mut Buffer) {
         let block = Block::new()
             .title(Line::raw("Menu").centered())
             .borders(Borders::TOP)
             .border_set(symbols::border::EMPTY)
-            .border_style(TODO_HEADER_STYLE)
-            .bg(NORMAL_ROW_BG);
+            .border_style(LISTA_BORDA_ESTILO)
+            .bg(GERAL_BG);
 
         // Iterate through all elements in the `items` and stylize them.
         let items: Vec<ListItem> = self
@@ -116,28 +103,19 @@ impl Menu {
             .iter()
             .enumerate()
             .map(|(i, value)| {
-                let color = alternate_colors(i);
-                ListItem::new(Line::styled(value.0.clone(), TEXT_FG_COLOR)).bg(color)
+                ListItem::new(Line::styled(value.0.clone(), GERAL_TEXT_FG)).bg(alternate_colors(i))
             })
             .collect();
 
         // Create a List from all list items and highlight the currently selected one
         let list = List::new(items)
             .block(block)
-            .highlight_style(SELECTED_STYLE)
+            .highlight_style(LISTA_SELECIONADO_ESTILO)
             .highlight_symbol("▶ ")
             .highlight_spacing(HighlightSpacing::Always);
 
         // We need to disambiguate this trait method as both `Widget` and `StatefulWidget` share the
         // same method name `render`.
         StatefulWidget::render(list, area, buf, &mut self.state);
-    }
-}
-
-const fn alternate_colors(i: usize) -> Color {
-    if i % 2 == 0 {
-        NORMAL_ROW_BG
-    } else {
-        ALT_ROW_BG_COLOR
     }
 }
