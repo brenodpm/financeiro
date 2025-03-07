@@ -3,27 +3,21 @@ use ratatui::{
     buffer::Buffer,
     crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind},
     layout::{Constraint, Layout, Rect},
-    style::{
-        palette::tailwind::{BLUE, SLATE},
-        Color, Modifier, Style, Stylize,
-    },
+    style::
+        Stylize
+    ,
     symbols,
     text::Line,
     widgets::{
-        Block, Borders, HighlightSpacing, List, ListItem, ListState, Paragraph, StatefulWidget,
+        Block, Borders, HighlightSpacing, List, ListItem, ListState, StatefulWidget,
         Widget,
     },
     DefaultTerminal,
 };
 
-use crate::{dto::Meta, estilo::alternate_colors};
+use crate::{dto::Meta, estilo::{alternate_colors, principal_comandos, principal_titulo, GERAL_BG, GERAL_TEXT_FG, LISTA_BORDA_ESTILO, LISTA_SELECIONADO_ESTILO}};
 
 use super::meta_wgt::EditarMeta;
-
-const TODO_HEADER_STYLE: Style = Style::new().fg(SLATE.c100).bg(BLUE.c800);
-const NORMAL_ROW_BG: Color = SLATE.c950;
-const TEXT_FG_COLOR: Color = SLATE.c200;
-const SELECTED_STYLE: Style = Style::new().bg(SLATE.c800).add_modifier(Modifier::BOLD);
 
 pub struct ListaMeta {
     sair: bool,
@@ -43,16 +37,16 @@ impl Default for ListaMeta {
 
 impl Widget for &mut ListaMeta {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let [header_area, main_area, footer_area] = Layout::vertical([
+        let [titulo, corpo, rodape] = Layout::vertical([
             Constraint::Length(2),
             Constraint::Fill(1),
             Constraint::Length(1),
         ])
         .areas(area);
 
-        ListaMeta::render_header(header_area, buf);
-        ListaMeta::render_footer(footer_area, buf);
-        self.render_list(main_area, buf);
+        principal_titulo("Lista de Metas", titulo, buf);
+        principal_comandos(vec!["↓↑ (mover)", "N (novo)", "ENTER (selecionar)", "ESC (sair)", "DEL (remover)"], rodape, buf);
+        self.render_list(corpo, buf);
     }
 }
 
@@ -123,54 +117,36 @@ impl ListaMeta {
         }
     }
 
-    fn render_header(area: Rect, buf: &mut Buffer) {
-        Paragraph::new("Financeiro")
-            .bold()
-            .centered()
-            .render(area, buf);
-    }
-
-    fn render_footer(area: Rect, buf: &mut Buffer) {
-        Paragraph::new("Use ↓↑ mover, N novo, ENTER selecionar, ESC sair, DEL remover")
-            .centered()
-            .render(area, buf);
-    }
-
     fn render_list(&mut self, area: Rect, buf: &mut Buffer) {
         let block = Block::new()
-            .title(Line::raw("Cadastro de metas").centered())
+            .title(Line::raw("Metas").centered())
             .borders(Borders::TOP)
             .border_set(symbols::border::EMPTY)
-            .border_style(TODO_HEADER_STYLE)
-            .bg(NORMAL_ROW_BG);
+            .border_style(LISTA_BORDA_ESTILO)
+            .bg(GERAL_BG);
 
-        // Iterate through all elements in the `items` and stylize them.
         let items: Vec<ListItem> = self
             .metas
             .iter()
             .enumerate()
             .map(|(i, todo_item)| {
-                let color = alternate_colors(i);
-                ListItem::from(todo_item).bg(color)
+                ListItem::from(todo_item).bg(alternate_colors(i))
             })
             .collect();
 
-        // Create a List from all list items and highlight the currently selected one
         let list = List::new(items)
             .block(block)
-            .highlight_style(SELECTED_STYLE)
+            .highlight_style(LISTA_SELECIONADO_ESTILO)
             .highlight_symbol("▶")
             .highlight_spacing(HighlightSpacing::Always);
 
-        // We need to disambiguate this trait method as both `Widget` and `StatefulWidget` share the
-        // same method name `render`.
         StatefulWidget::render(list, area, buf, &mut self.state);
     }
 }
 
 impl From<&Meta> for ListItem<'_> {
     fn from(meta: &Meta) -> Self {
-        let line = Line::styled(format!(" {}", meta.nome), TEXT_FG_COLOR);
+        let line = Line::styled(format!(" {}", meta.nome), GERAL_TEXT_FG);
         ListItem::new(line)
     }
 }

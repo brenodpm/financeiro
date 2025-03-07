@@ -3,7 +3,7 @@ use ratatui::{
     buffer::Buffer,
     crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind},
     layout::{Constraint, Layout, Rect},
-    widgets::{Paragraph, Widget},
+    widgets::Widget,
     DefaultTerminal,
 };
 
