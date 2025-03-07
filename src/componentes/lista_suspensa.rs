@@ -3,11 +3,7 @@ use ratatui::{
     crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind},
     layout::Rect,
     style::{
-        palette::{
-            material::BLUE,
-            tailwind::SLATE,
-        },
-        Color, Modifier, Style, Stylize,
+        Style, Stylize,
     },
     symbols,
     text::{Line, Span, Text},
@@ -18,7 +14,7 @@ use ratatui::{
     DefaultTerminal,
 };
 
-use crate::estilo::{alternate_colors, estilo_input, estilo_input_foco, fg_color};
+use crate::estilo::{alternate_colors, estilo_input, estilo_input_foco, fg_color, GERAL_BG, LISTA_BORDA_ESTILO, LISTA_SELECIONADO_ESTILO};
 
 #[derive(Clone)]
 pub struct ItemListaSuspensa {
@@ -36,18 +32,14 @@ pub struct ListaSuspensa {
     modo_lista_state: ListState,
 }
 
-const TODO_HEADER_STYLE: Style = Style::new().fg(SLATE.c100).bg(BLUE.c800);
-const NORMAL_ROW_BG: Color = SLATE.c950;
-const SELECTED_STYLE: Style = Style::new().bg(SLATE.c800).add_modifier(Modifier::BOLD);
-
 impl Widget for &mut ListaSuspensa {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let block = Block::new()
             .title(Line::raw(self.nome.clone()).centered())
             .borders(Borders::TOP)
             .border_set(symbols::border::EMPTY)
-            .border_style(TODO_HEADER_STYLE)
-            .bg(NORMAL_ROW_BG);
+            .border_style(LISTA_BORDA_ESTILO)
+            .bg(GERAL_BG);
 
         // Iterate through all elements in the `items` and stylize them.
         let items: Vec<ListItem> = self
@@ -63,7 +55,7 @@ impl Widget for &mut ListaSuspensa {
         // Create a List from all list items and highlight the currently selected one
         let list = List::new(items)
             .block(block)
-            .highlight_style(SELECTED_STYLE)
+            .highlight_style(LISTA_SELECIONADO_ESTILO)
             .highlight_symbol("▶")
             .highlight_spacing(HighlightSpacing::Always);
 
