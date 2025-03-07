@@ -141,7 +141,13 @@ impl SelecionarCategoria {
         }
         match self.status {
             Status::AltDesc => match key.code {
-                KeyCode::Esc => self.status = Status::Sair,
+                KeyCode::Esc => {
+                    if self.regex.to_string() != self.texto_original {
+                        self.regex.set_texto(self.texto_original.clone());
+                    } else {
+                        self.status = Status::Sair
+                    }
+                }
                 KeyCode::Down | KeyCode::Up | KeyCode::BackTab | KeyCode::Tab => {
                     if self.regex.to_string().len() < 3 {
                         self.regex.set_texto(self.texto_original.clone());

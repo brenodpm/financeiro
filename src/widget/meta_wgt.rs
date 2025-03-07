@@ -3,7 +3,6 @@ use ratatui::{
     buffer::Buffer,
     crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind},
     layout::{Constraint, Layout, Rect},
-    style::Stylize,
     widgets::{Paragraph, Widget},
     DefaultTerminal,
 };
@@ -15,6 +14,7 @@ use crate::{
         lista_suspensa::{ItemListaSuspensa, ListaSuspensa},
     },
     dto::{Banco, Categoria, Meta, Unico},
+    estilo::{principal_comandos, principal_titulo},
 };
 
 #[derive(PartialEq)]
@@ -53,16 +53,24 @@ pub struct EditarMeta {
 
 impl Widget for &mut EditarMeta {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let [header_area, main_area, footer_area] = Layout::vertical([
+        let [titulo, corpo, rodape] = Layout::vertical([
             Constraint::Length(2),
             Constraint::Fill(1),
             Constraint::Length(1),
         ])
         .areas(area);
 
-        EditarMeta::render_header(header_area, buf);
-        EditarMeta::render_footer(footer_area, buf);
-        self.render(main_area, buf)
+        principal_titulo(
+            if self.id_meta.is_empty() {
+                "Nova Meta"
+            } else {
+                "Edição de Meta"
+            },
+            titulo,
+            buf,
+        );
+        principal_comandos(vec!["(Editar)","TAB (próximo)","Esc (sair)", "INSERT (salvar)"], rodape, buf);
+        self.render(corpo, buf)
     }
 }
 
@@ -129,19 +137,6 @@ impl EditarMeta {
             return Ok(meta);
         }
         Ok(None)
-    }
-
-    fn render_header(area: Rect, buf: &mut Buffer) {
-        Paragraph::new("Financeiro")
-            .bold()
-            .centered()
-            .render(area, buf);
-    }
-
-    fn render_footer(area: Rect, buf: &mut Buffer) {
-        Paragraph::new("Use ↓↑ mover, → selecionar categoria, ESC sair")
-            .centered()
-            .render(area, buf);
     }
 
     pub fn handle_key(&mut self, key: KeyEvent, terminal: &mut DefaultTerminal) {
