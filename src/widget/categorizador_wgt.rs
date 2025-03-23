@@ -4,13 +4,13 @@ use ratatui::{
     crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind},
     layout::{Constraint, Layout, Rect},
     style::{
-        palette::tailwind::{BLUE, GREEN, SLATE},
-        Color, Modifier, Style, Stylize,
+        palette::tailwind::GREEN,
+        Color, Stylize,
     },
     symbols,
     text::Line,
     widgets::{
-        Block, Borders, HighlightSpacing, List, ListItem, ListState, Padding, Paragraph,
+        Block, Borders, HighlightSpacing, List, ListItem, ListState, Paragraph,
         StatefulWidget, Widget, Wrap,
     },
     DefaultTerminal,
