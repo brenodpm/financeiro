@@ -179,11 +179,11 @@ impl ListaDividas {
                 }
             ));
 
-            if divida.aberta().len() > 0 {
+            if divida.parcelas.aberta().len() > 0 {
                 let hoje = Utc::now().naive_utc().date();
                 let meses_faltando =
-                    (divida.aberta().ultima().data_vencimento.year() - hoje.year()) * 12
-                        + divida.aberta().ultima().data_vencimento.month() as i32
+                    (divida.parcelas.aberta().ultima().data_vencimento.year() - hoje.year()) * 12
+                        + divida.parcelas.aberta().ultima().data_vencimento.month() as i32
                         - hoje.month() as i32;
                 if meses_faltando > 0 {
                     if meses_faltando < 12 {
@@ -213,13 +213,13 @@ impl ListaDividas {
             ));
             info.push(format!(
                 "{:0>2} parcelas abertas       total de R$ {:0.02}",
-                divida.aberta().quant(),
-                divida.aberta().valor_total()
+                divida.parcelas.aberta().quant(),
+                divida.parcelas.aberta().valor_total()
             ));
             info.push(format!(
                 "{:0>2} parcelas fechadas      total de R$ {:0.02}",
-                divida.pagas().quant(),
-                divida.pagas().valor_total()
+                divida.parcelas.pagas().quant(),
+                divida.parcelas.pagas().valor_total()
             ));
             info.push(format!(
                 "{:0>2} parcelas total         total de R$ {:0.02}",
@@ -283,7 +283,7 @@ impl From<&Divida> for ListItem<'_> {
             format!(
                 "{} ({} de {})",
                 divida.nome,
-                divida.pagas().quant(),
+                divida.parcelas.pagas().quant(),
                 divida.parcelas.quant()
             )
         };

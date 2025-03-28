@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-use crate::dto::{Divida, CSV};
+use crate::dto::{DadosDivida, Divida, CSV};
 
 use super::file_repy::{arq_escrever_linhas, arq_ler};
 
@@ -36,7 +36,7 @@ impl Divida {
     pub fn atualizar() {
         let mut lista = Divida::listar()
             .into_iter()
-            .filter(|d| d.aberta().len() > 0)
+            .filter(|d| d.parcelas.aberta().len() > 0)
             .collect::<Vec<Divida>>();
 
         for divida in lista.iter_mut() {

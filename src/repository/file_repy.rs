@@ -1,5 +1,5 @@
 use std::{
-    fs::{create_dir_all, write, File},
+    fs::{create_dir_all, remove_dir_all, write, File},
     io::{BufRead, BufReader, Lines, Read}, iter::Flatten, path::{Path, PathBuf},
 };
 
@@ -53,6 +53,12 @@ pub fn arq_escrever_linhas(dir: &str, file: &str, linhas: &Vec<String>) {
 
     write(path, linhas.join("\n"))
         .expect("Falha ao escrever no arquivo");
+}
+
+pub fn arq_deletar_dir(dir: &str){
+    let mut path = get_home_dir();
+    path.push(&dir);
+    remove_dir_all(path).unwrap();
 }
 
 fn checar_dir(path: &PathBuf) {

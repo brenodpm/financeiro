@@ -111,10 +111,10 @@ impl EditarDivida {
                     .format("%d/%m/%y")
                     .to_string(),
             ),
-            pagos: Input::new_inteiro("Pagos", divida.pagas().quant()),
+            pagos: Input::new_inteiro("Pagos", divida.parcelas.pagas().quant()),
             cobranca_auto: Check::new("Cobrança automática", divida.cobranca_automatica),
-            aberto: Input::new_monetario("Aberto", divida.aberta().valor_total()),
-            pago: Input::new_monetario("Pago", divida.pagas().valor_total()),
+            aberto: Input::new_monetario("Aberto", divida.parcelas.aberta().valor_total()),
+            pago: Input::new_monetario("Pago", divida.parcelas.pagas().valor_total()),
             total: Input::new_monetario("Total", divida.parcelas.valor_total()),
             quitar: Check::new("Quitar dívida", false),
             state: ListState::default(),
@@ -210,7 +210,7 @@ impl EditarDivida {
                 Status::AltCobrancaAuto => self.status = Status::Quitar,
                 Status::Quitar => {
                     self.status = Status::AltLista;
-                    self.state.select(Some(self.divida.pagas().len()));
+                    self.state.select(Some(self.divida.parcelas.pagas().len()));
                 }
                 Status::AltLista => self.status = Status::AltNome,
 
@@ -238,7 +238,7 @@ impl EditarDivida {
                 Status::Quitar => self.status = Status::AltCobrancaAuto,
                 Status::AltNome => {
                     self.status = Status::AltLista;
-                    self.state.select(Some(self.divida.pagas().len()));
+                    self.state.select(Some(self.divida.parcelas.pagas().len()));
                 }
 
                 _ => {}
@@ -399,8 +399,8 @@ impl EditarDivida {
         }
 
         self.aberto
-            .set_monetario(self.divida.aberta().valor_total());
-        self.pago.set_monetario(self.divida.pagas().valor_total());
+            .set_monetario(self.divida.parcelas.aberta().valor_total());
+        self.pago.set_monetario(self.divida.parcelas.pagas().valor_total());
         self.total.set_monetario(self.divida.parcelas.valor_total());
     }
 }

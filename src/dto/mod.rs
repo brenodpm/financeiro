@@ -13,6 +13,7 @@ mod tipo_despesa_dto;
 mod tipo_fluxo_dto;
 mod parcela_divida_dto;
 mod meta_dto;
+mod divida_mes_dto;
 
 pub use meta_dto::Meta;
 pub use banco_dto::Banco;
@@ -33,6 +34,7 @@ use sha1::{Digest, Sha1};
 pub use tipo_despesa_dto::TipoDespesa;
 pub use tipo_fluxo_dto::TipoFluxo;
 pub use divida_dto::DadosDivida;
+pub use divida_mes_dto::DividaMes;
 
 
 

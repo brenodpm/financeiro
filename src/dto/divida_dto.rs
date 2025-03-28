@@ -1,4 +1,4 @@
-use chrono::NaiveDate;
+use chrono::{Datelike, NaiveDate};
 
 use super::{gerar_sha1, ParcelaDivida, Unico, CSV};
 
@@ -13,14 +13,22 @@ pub struct Divida {
 pub trait DadosDivida {
     fn primeira(&self) -> ParcelaDivida;
     fn ultima(&self) -> ParcelaDivida;
+
     fn valor_total(&self) -> f64;
     fn quant(&self) -> i32;
+
+    fn antes_de(&self, data: NaiveDate) -> Self;
+    fn data_igual_ou_maior_que(&self, data: NaiveDate) -> Self;
+    fn mes_e_ano(&self, data: NaiveDate) -> Self;
+
+    fn pagas(&self) -> Self;
+    fn aberta(&self) -> Self;
 }
 
 impl Divida {
     pub fn new(
         nome: String,
-        cobranca_automatica:bool,
+        cobranca_automatica: bool,
         quant: i32,
         valor: f64,
         dt_inicio: NaiveDate,
@@ -49,25 +57,11 @@ impl Divida {
         divida
     }
 
-    pub fn pagas(&self) -> Vec<ParcelaDivida> {
-        self.parcelas
-            .clone()
-            .into_iter()
-            .filter(|p| p.pago)
-            .collect()
-    }
-    pub fn aberta(&self) -> Vec<ParcelaDivida> {
-        self.parcelas
-            .clone()
-            .into_iter()
-            .filter(|p| !p.pago)
-            .collect()
-    }
     pub fn prox_parcela(&self) -> ParcelaDivida {
-        if self.aberta().quant() > 0 {
-            self.aberta().primeira()
+        if self.parcelas.aberta().quant() > 0 {
+            self.parcelas.aberta().primeira()
         } else {
-            self.pagas().ultima()
+            self.parcelas.pagas().ultima()
         }
     }
 }
@@ -87,6 +81,38 @@ impl DadosDivida for Vec<ParcelaDivida> {
 
     fn quant(&self) -> i32 {
         self.len() as i32
+    }
+
+    fn antes_de(&self, data: NaiveDate) -> Self {
+        self.iter()
+            .filter(|p| p.data_vencimento < data)
+            .cloned()
+            .collect()
+    }
+
+    fn data_igual_ou_maior_que(&self, data: NaiveDate) -> Self {
+        self.iter()
+            .filter(|p| p.data_vencimento >= data)
+            .cloned()
+            .collect()
+    }
+
+    fn mes_e_ano(&self, data: NaiveDate) -> Self {
+        self.iter()
+            .filter(|p| {
+                p.data_vencimento.year_ce() == data.year_ce()
+                    && p.data_vencimento.month0() == data.month0()
+            })
+            .cloned()
+            .collect()
+    }
+
+    fn pagas(&self) -> Self {
+        self.iter().filter(|p| p.pago).cloned().collect()
+    }
+
+    fn aberta(&self) -> Self {
+        self.iter().filter(|p| !p.pago).cloned().collect()
     }
 }
 
