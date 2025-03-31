@@ -1,16 +1,2 @@
-var dividas = [{
-  "mes": "2021",
-  "pago": 2.5,
-  "aberto": 2.5,
-  "excesso": 2.1
-}, {
-  "mes": "2022",
-  "pago": 2.6,
-  "aberto": 2.7,
-  "excesso": 2.2
-}, {
-  "mes": "2023",
-  "pago": 2.8,
-  "aberto": 2.9,
-  "excesso": 2.4
-}]
+var dividas = [
+  { "mes": "atrasado", "pago": -0.0, "aberto": 0.0, "excesso": 750.0 }, { "mes": "corrente", "pago": -0.0, "aberto": 75.0, "excesso": 0.0 }, { "mes": "04/2025", "pago": -0.0, "aberto": 275.0, "excesso": 0.0 }, { "mes": "05/2025", "pago": -0.0, "aberto": 275.0, "excesso": 0.0 }, { "mes": "06/2025", "pago": -0.0, "aberto": 275.0, "excesso": 0.0 }, { "mes": "07/2025", "pago": -0.0, "aberto": 275.0, "excesso": 0.0 }, { "mes": "08/2025", "pago": -0.0, "aberto": 275.0, "excesso": 0.0 }, { "mes": "09/2025", "pago": -0.0, "aberto": 275.0, "excesso": 0.0 }, { "mes": "10/2025", "pago": -0.0, "aberto": 275.0, "excesso": 0.0 }, { "mes": "11/2025", "pago": -0.0, "aberto": 75.0, "excesso": 0.0 }, { "mes": "12/2025", "pago": -0.0, "aberto": 75.0, "excesso": 0.0 }, { "mes": "01/2026", "pago": -0.0, "aberto": -0.0, "excesso": 0.0 }, { "mes": "02/2026", "pago": -0.0, "aberto": -0.0, "excesso": 0.0 }];

@@ -4,19 +4,12 @@ am5.ready(function () {
 
 
 function renderizarDividas() {
-  // Create root element
-  // https://www.amcharts.com/docs/v5/getting-started/#Root_element
   var root = am5.Root.new("dividas");
-
-  // Set themes
-  // https://www.amcharts.com/docs/v5/concepts/themes/
   root.setThemes([
-    am5themes_Animated.new(root)
+    am5themes_Animated.new(root),
+    am5themes_Dark.new(root)
   ]);
 
-
-  // Create chart
-  // https://www.amcharts.com/docs/v5/charts/xy-chart/
   var chart = root.container.children.push(am5xy.XYChart.new(root, {
     panX: false,
     panY: false,
@@ -26,25 +19,22 @@ function renderizarDividas() {
     layout: root.verticalLayout
   }));
 
-  // Add scrollbar
-  // https://www.amcharts.com/docs/v5/charts/xy-chart/scrollbars/
-  chart.set("scrollbarX", am5.Scrollbar.new(root, {
-    orientation: "horizontal"
-  }));
-
-
-
-
-  // Create axes
-  // https://www.amcharts.com/docs/v5/charts/xy-chart/axes/
   var xRenderer = am5xy.AxisRendererX.new(root, {
     minorGridEnabled: true
   });
+
   var xAxis = chart.xAxes.push(am5xy.CategoryAxis.new(root, {
     categoryField: "mes",
     renderer: xRenderer,
     tooltip: am5.Tooltip.new(root, {})
   }));
+
+  xAxis.get("renderer").labels.template.setAll({
+    rotation: -75,
+    fontSize: 9,
+    centerY: am5.p50,
+    centerX: am5.p100,
+  });
 
   xRenderer.grid.template.setAll({
     location: 1
@@ -59,57 +49,61 @@ function renderizarDividas() {
     })
   }));
 
-
-  // Add legend
-  // https://www.amcharts.com/docs/v5/charts/xy-chart/legend-xy-series/
   var legend = chart.children.push(am5.Legend.new(root, {
     centerX: am5.p50,
     x: am5.p50
   }));
 
+  legend.labels.template.setAll({
+    fontSize: 8
+    
+});
 
-  // Add series
-  // https://www.amcharts.com/docs/v5/charts/xy-chart/series/
-  function makeSeries(name, fieldName) {
+  function makeSeries(name, fieldName, cor) {
     var series = chart.series.push(am5xy.ColumnSeries.new(root, {
       name: name,
       stacked: true,
       xAxis: xAxis,
       yAxis: yAxis,
       valueYField: fieldName,
-      categoryXField: "mes"
+      categoryXField: "mes",
+      fill: cor,
+
     }));
 
     series.columns.template.setAll({
-      tooltipText: "{name}, {categoryX}: {valueY}",
+      tooltipText: "{categoryX}: R${valueY.formatNumber('#,##0.00')}",
       tooltipY: am5.percent(10)
     });
     series.data.setAll(dividas);
 
-    // Make stuff animate on load
-    // https://www.amcharts.com/docs/v5/concepts/animations/
+
     series.appear();
 
-    series.bullets.push(function () {
-      return am5.Bullet.new(root, {
-        sprite: am5.Label.new(root, {
-          text: "{valueY}",
-          fill: root.interfaceColors.get("alternativeText"),
-          centerY: am5.p50,
-          centerX: am5.p50,
-          populateText: true
-        })
-      });
+    series.bullets.push(function (root, series, dataItem) {
+      if (dataItem.get("valueY") !== 0) {
+        return am5.Bullet.new(root, {
+          sprite: am5.Label.new(root, {
+            text: "{valueY}",
+            fill: am5.color(0xffffff),
+            centerY: am5.p50,
+            centerX: am5.p50,
+            populateText: true,
+            fontSize: 12,
+          })
+        });
+      }
+      return null;
     });
 
     legend.data.push(series);
   }
 
-  makeSeries("Pago", "pago");
-  makeSeries("Aberto", "aberto");
-  makeSeries("Excesso", "excesso");
+  makeSeries("Pago", "pago", am5.color(0xAAAAAA));
+  makeSeries("Aberto", "aberto", am5.color(0x2b6218));
+  makeSeries("Excesso", "excesso", am5.color(0x710404));
 
 
   chart.appear(1000, 100);
 
-}; // end am5.ready()
+};
