@@ -8,6 +8,7 @@ mod lancamento_repy;
 mod meta_repy;
 mod ofx_repy;
 mod regra_repy;
+mod configuracao_repy;
 
 pub use dash_repy::atualizar_base;
 pub use regra_repy::Buscar;
