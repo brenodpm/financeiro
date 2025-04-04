@@ -10,7 +10,7 @@ use ratatui::{
 
 use crate::{
     componentes::check_wgt::Check,
-    dto::{DadosDivida, Divida, DividaMes, ParcelaDivida},
+    dto::{Configuracao, DadosDivida, Divida, DividaMes, ParcelaDivida},
     estilo::{principal_comandos, principal_titulo},
     repository::atualizar_base,
 };
@@ -28,6 +28,7 @@ pub struct GeradorDash {
     etapa: Etapa,
     descricao: String,
 
+    config: Configuracao,
     lista_dividas: Vec<ParcelaDivida>,
 
     base: Check,
@@ -60,6 +61,8 @@ impl GeradorDash {
             fim: Check::new("Encerrar", false),
 
             descricao: "Iniciando...".to_string(),
+
+            config: Configuracao::buscar(),
             lista_dividas: Vec::new(),
         }
     }
@@ -102,7 +105,7 @@ impl GeradorDash {
         match self.etapa {
             Etapa::Iniciando => self.inicializar(),
             Etapa::Base => self.atualizar_base(),
-            Etapa::Dividas => self.calcular_dividas(600f64),
+            Etapa::Dividas => self.calcular_dividas(),
             Etapa::Finalizado | Etapa::Sair => {}
         }
     }
@@ -129,7 +132,8 @@ impl GeradorDash {
         self.etapa = Etapa::Dividas;
     }
 
-    fn calcular_dividas(&mut self, limite: f64) {
+    fn calcular_dividas(&mut self) {
+        let limite = self.config.endividamento_max;
         let mut meses: Vec<DividaMes> = Vec::new();
 
         let mut data = Local::now().date_naive();
