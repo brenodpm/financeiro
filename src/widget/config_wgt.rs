@@ -34,7 +34,7 @@ impl Default for EditarConfiguracoes {
         Self {
             status: Status::EditarSalario,
             salario: Input::new_monetario("Salário", configs.salario),
-            endividamento_max: Input::new_monetario("Endividamento máximo", configs.salario),
+            endividamento_max: Input::new_monetario("Endividamento máximo", configs.endividamento_max),
         }
     }
 }
