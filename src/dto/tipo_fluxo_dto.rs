@@ -18,7 +18,7 @@ impl TipoFluxo {
     pub fn new(tipo: &str, grupo: &str, sub_grupo: &str)->Self{
         match tipo {
             "Receita" => TipoFluxo::Receita(sub_grupo.to_string()),
-            "Despesa" => TipoFluxo::Despesa(GrupoDespesa::new(grupo.clone(), sub_grupo.clone())),
+            "Despesa" => TipoFluxo::Despesa(GrupoDespesa::new(grupo, sub_grupo)),
             "Investimento" => TipoFluxo::Investimento,
             "Retorno" => TipoFluxo::Retorno,
             "Transferencias" => TipoFluxo::Transferencias,

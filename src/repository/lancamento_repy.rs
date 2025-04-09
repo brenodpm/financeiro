@@ -1,10 +1,10 @@
 use crate::dto::{Lancamento, CSV};
 
-use super::file_repy::{arq_escrever_linhas, arq_ler};
+use super::file_repy::{arq_escrever, arq_ler};
 
 const FIN: &str = ".financeiro";
-const NAO_CAT: &str = "nao-cat.csv";
-const LANCAMENTOS: &str = "lancamentos.csv";
+const NAO_CAT: &str = "nao-cat.json";
+const LANCAMENTOS: &str = "lancamentos.json";
 
 impl Lancamento {
     pub fn categorizar(itens: &Vec<Lancamento>){
@@ -26,19 +26,23 @@ impl Lancamento {
     }
 
     pub fn nao_categorizados_listar() -> Vec<Lancamento> {
-        arq_ler(FIN, NAO_CAT).map(Lancamento::from_csv).collect()
+        let mut json: String = arq_ler(FIN, NAO_CAT).collect();
+        if json.is_empty() {
+            json = "[]".to_string();
+        }
+        serde_json::from_str(&json).unwrap()
     }
 
     pub fn nao_categorizados_salvar(itens: &Vec<Lancamento>) {
-        arq_escrever_linhas(
-            FIN,
-            NAO_CAT,
-            &itens.into_iter().map(|i| i.to_csv()).collect(),
-        )
+        arq_escrever(FIN, NAO_CAT, serde_json::to_string(&itens).unwrap());
     }
 
     pub fn lancamentos_listar() -> Vec<Lancamento>{
-        arq_ler(FIN, LANCAMENTOS).map(Lancamento::from_csv).collect()
+        let mut json: String = arq_ler(FIN, LANCAMENTOS).collect();
+        if json.is_empty() {
+            json = "[]".to_string();
+        }
+        serde_json::from_str(&json).unwrap()
     }
 
     pub fn lancamentos_adicionar(itens: &Vec<Lancamento>) {
@@ -54,10 +58,6 @@ impl Lancamento {
     }
     
     pub fn lancamentos_salvar(itens: &Vec<Lancamento>) {
-        arq_escrever_linhas(
-            FIN,
-            LANCAMENTOS,
-            &itens.into_iter().map(|i| i.to_csv()).collect(),
-        )
+        arq_escrever(FIN, LANCAMENTOS, serde_json::to_string(&itens).unwrap());
     }
 }
