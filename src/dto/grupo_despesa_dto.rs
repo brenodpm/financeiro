@@ -2,7 +2,7 @@ use std::fmt::{Display, Formatter, Result};
 
 use serde::{Deserialize, Serialize};
 
-use super::{TipoDespesa, CSV};
+use super::TipoDespesa;
 
 #[derive(Debug, Clone, Eq, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub struct GrupoDespesa {
@@ -10,36 +10,17 @@ pub struct GrupoDespesa {
     pub tipo: TipoDespesa,
 }
 
-impl CSV for GrupoDespesa {
-    fn from_csv(value: String) -> Self {
-        let values: Vec<String> = value.split(';').map(String::from).collect();
-        GrupoDespesa::from_csv_vec(values)
-    }
-
-    fn from_csv_vec(value: Vec<String>) -> Self {
-        GrupoDespesa {
-            grupo: value[0].clone(),
-            tipo: match value[1].as_str() {
+impl GrupoDespesa {
+    pub fn new(grupo: &str, sub_grupo: &str)->Self{
+        Self{
+            grupo: grupo.to_string(),
+            tipo: match sub_grupo {
                 "Fixa" => TipoDespesa::Fixa,
                 "Variavel" => TipoDespesa::Variavel,
                 "Perda" => TipoDespesa::Perda,
                 _ => TipoDespesa::Vazio,
             },
         }
-    }
-
-    fn to_csv(&self) -> String {
-        let mut resp: Vec<String> = Vec::new();
-
-        resp.push(self.grupo.clone());
-        match self.tipo {
-            TipoDespesa::Fixa => resp.push("Fixa".to_string()),
-            TipoDespesa::Variavel => resp.push("Variavel".to_string()),
-            TipoDespesa::Perda => resp.push("Perda".to_string()),
-            TipoDespesa::Vazio => resp.push("".to_string()),
-        }
-
-        resp.join(";")
     }
 }
 

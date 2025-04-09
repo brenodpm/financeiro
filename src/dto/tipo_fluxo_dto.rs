@@ -2,7 +2,7 @@ use std::fmt::{Display, Formatter, Result};
 
 use serde::{Deserialize, Serialize};
 
-use super::{GrupoDespesa, CSV};
+use super::GrupoDespesa;
 
 #[derive(Debug, Clone, Eq, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub enum TipoFluxo {
@@ -14,52 +14,16 @@ pub enum TipoFluxo {
     SemCategoria,
 }
 
-impl CSV for TipoFluxo {
-    fn from_csv(value: String) -> Self {
-        let values: Vec<String> = value.split(';').map(String::from).collect();
-        TipoFluxo::from_csv_vec(values)
-    }
-
-    fn from_csv_vec(value: Vec<String>) -> Self {
-        match value[0].as_str() {
-            "Receita" => TipoFluxo::Receita(value[1].clone()),
-            "Despesa" => TipoFluxo::Despesa(GrupoDespesa::from_csv_vec(
-                value.clone().drain(1..).collect(),
-            )),
+impl TipoFluxo {
+    pub fn new(tipo: &str, grupo: &str, sub_grupo: &str)->Self{
+        match tipo {
+            "Receita" => TipoFluxo::Receita(sub_grupo.to_string()),
+            "Despesa" => TipoFluxo::Despesa(GrupoDespesa::new(grupo.clone(), sub_grupo.clone())),
             "Investimento" => TipoFluxo::Investimento,
             "Retorno" => TipoFluxo::Retorno,
             "Transferencias" => TipoFluxo::Transferencias,
             _ => TipoFluxo::SemCategoria,
         }
-    }
-
-    fn to_csv(&self) -> String {
-        let mut resp: Vec<String> = Vec::new();
-
-        match self {
-            TipoFluxo::Receita(nome) => {
-                resp.push("Receita".to_string());
-                resp.push(nome.clone());
-            }
-            TipoFluxo::Despesa(grupo_despesa) => {
-                resp.push("Despesa".to_string());
-                resp.push(grupo_despesa.to_csv());
-            }
-            TipoFluxo::Investimento => {
-                resp.push("Investimento".to_string());
-            }
-            TipoFluxo::Retorno => {
-                resp.push("Retorno".to_string());
-            }
-            TipoFluxo::Transferencias => {
-                resp.push("Transferencias".to_string());
-            }
-            TipoFluxo::SemCategoria => {
-                resp.push("Sem categoria".to_string());
-            }
-        }
-
-        resp.join(";")
     }
 }
 

@@ -2,7 +2,9 @@ use std::fmt::{self, Formatter, Result};
 
 use serde::{Deserialize, Serialize};
 
-use super::{gerar_sha1, lazy::LazyFn, optional_lazy::OptionalLazyFn, Lazy, OptionalLazy, TipoFluxo, Unico, CSV};
+use super::{
+    gerar_sha1, lazy::LazyFn, optional_lazy::OptionalLazyFn, GrupoDespesa, Lazy, OptionalLazy, TipoFluxo, Unico
+};
 
 #[derive(Debug, Clone, Eq, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub struct Categoria {
@@ -42,7 +44,7 @@ impl OptionalLazyFn<Categoria> for OptionalLazy<Categoria> {
 
     fn some(&self) -> Option<Categoria> {
         match self {
-            OptionalLazy::Id(id) =>Some(Categoria {
+            OptionalLazy::Id(id) => Some(Categoria {
                 id: id.clone(),
                 nome: String::new(),
                 tipo: TipoFluxo::SemCategoria,
@@ -61,31 +63,6 @@ impl Unico for Categoria {
         itens.push(self.tipo.to_string());
 
         self.id = gerar_sha1(itens.join(":"));
-    }
-}
-
-impl CSV for Categoria {
-    fn from_csv(value: String) -> Self {
-        let values: Vec<String> = value.split(';').map(String::from).collect();
-        Categoria::from_csv_vec(values)
-    }
-
-    fn from_csv_vec(value: Vec<String>) -> Self {
-        Categoria {
-            id: value[0].clone(),
-            nome: value[1].clone(),
-            tipo: TipoFluxo::from_csv_vec(value.clone().drain(2..).collect()),
-        }
-    }
-
-    fn to_csv(&self) -> String {
-        let mut resp: Vec<String> = Vec::new();
-
-        resp.push(self.id.clone());
-        resp.push(self.nome.clone());
-        resp.push(self.tipo.to_csv());
-
-        resp.join(";")
     }
 }
 
@@ -177,43 +154,35 @@ impl Categoria {
         transferencias(&mut resp, "Transferência entre contas");
         transferencias(&mut resp, "Empréstimos familiar");
 
-        resp.push(Categoria::new());
+        resp.push(Categoria::new("", TipoFluxo::SemCategoria));
         resp
     }
 
-    fn new() -> Self {
+    fn new(nome: &str, tipo: TipoFluxo) -> Self {
         Self {
             id: String::new(),
-            nome: String::new(),
-            tipo: TipoFluxo::SemCategoria,
+            nome: nome.to_string(),
+            tipo: tipo,
         }
     }
 }
 
-fn despesa(array: &mut Vec<Categoria>, nome: &str, grupo: &str, despesa: &str) {
-    array.push(Categoria::from_csv(
-        format!(";{nome};Despesa;{grupo};{despesa}").to_string(),
-    ));
+fn despesa(array: &mut Vec<Categoria>, nome: &str, grupo: &str, sub_grupo: &str) {
+    array.push(Categoria::new(nome, TipoFluxo::Despesa(GrupoDespesa::new(grupo, sub_grupo))));
 }
 
 fn receita(array: &mut Vec<Categoria>, nome: &str, grupo: &str) {
-    array.push(Categoria::from_csv(
-        format!(";{nome};Receita;{grupo}").to_string(),
-    ));
+    array.push(Categoria::new(nome, TipoFluxo::Receita(grupo.to_string())));
 }
 
 fn investimento(array: &mut Vec<Categoria>, nome: &str) {
-    array.push(Categoria::from_csv(
-        format!(";{nome};Investimento").to_string(),
-    ));
+    array.push(Categoria::new(nome, TipoFluxo::Investimento));
 }
 
 fn retorno(array: &mut Vec<Categoria>, nome: &str) {
-    array.push(Categoria::from_csv(format!(";{nome};Retorno").to_string()));
+    array.push(Categoria::new(nome, TipoFluxo::Retorno));
 }
 
 fn transferencias(array: &mut Vec<Categoria>, nome: &str) {
-    array.push(Categoria::from_csv(
-        format!(";{nome};Transferencias").to_string(),
-    ));
+    array.push(Categoria::new(nome, TipoFluxo::Transferencias));
 }
