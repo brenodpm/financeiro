@@ -1,8 +1,10 @@
 use std::fmt::{self, Formatter, Result};
 
+use serde::{Deserialize, Serialize};
+
 use super::{gerar_sha1, lazy::LazyFn, optional_lazy::OptionalLazyFn, Lazy, OptionalLazy, TipoFluxo, Unico, CSV};
 
-#[derive(Debug, Clone, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Debug, Clone, Eq, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub struct Categoria {
     pub id: String,
     pub nome: String,

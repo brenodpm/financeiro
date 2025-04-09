@@ -1,8 +1,10 @@
 use std::fmt::{Display, Formatter, Result};
 
+use serde::{Deserialize, Serialize};
+
 use super::{TipoDespesa, CSV};
 
-#[derive(Debug, Clone, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Debug, Clone, Eq, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub struct GrupoDespesa {
     pub grupo: String,
     pub tipo: TipoDespesa,

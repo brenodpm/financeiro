@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-use crate::dto::{DadosDivida, Divida, CSV};
+use crate::dto::{DadosDivida, Divida};
 
 use super::file_repy::{arq_escrever, arq_ler};
 

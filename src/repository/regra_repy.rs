@@ -1,9 +1,9 @@
-use crate::dto::{Categoria, FluxoRegra, Lazy, LazyFn, Regra, CSV};
+use crate::dto::{Categoria, FluxoRegra, Lazy, LazyFn, Regra};
 
-use super::file_repy::{arq_escrever_linhas, arq_ler};
+use super::file_repy::{arq_escrever, arq_ler};
 
 const FIN: &str = ".financeiro";
-const REGRAS: &str = "regras.csv";
+const REGRAS: &str = "regras.json";
 
 pub trait Buscar {
     fn buscar(&self, descricao: &String, fluxo: FluxoRegra) -> Option<Regra>;
@@ -20,10 +20,19 @@ impl Buscar for Vec<Regra> {
 impl Regra {
     pub fn listar() -> Vec<Regra> {
         let cats = Categoria::listar();
-        let mut resp: Vec<Regra> = arq_ler(FIN, REGRAS).map(Regra::from_csv).collect();
+        let mut json: String = arq_ler(FIN, REGRAS).collect();
+        if json.is_empty() {
+            json = "[]".to_string();
+        }
+        let mut resp: Vec<Regra> = serde_json::from_str(&json).unwrap();
 
         resp.iter_mut().for_each(|r| {
-            r.categoria =  Lazy::Some(cats.iter().find(|c| c.id == r.categoria.id()).unwrap().clone())
+            r.categoria = Lazy::Some(
+                cats.iter()
+                    .find(|c| c.id == r.categoria.id())
+                    .unwrap()
+                    .clone(),
+            )
         });
 
         resp
@@ -47,9 +56,5 @@ impl Regra {
 fn salvar(mut regras: Vec<Regra>) {
     regras.sort_by(|a, b| b.regex.len().cmp(&a.regex.len()));
 
-    arq_escrever_linhas(
-        FIN,
-        REGRAS,
-        &regras.into_iter().map(|r| r.to_csv()).collect(),
-    );
+    arq_escrever(FIN, REGRAS, serde_json::to_string(&regras).unwrap());
 }
