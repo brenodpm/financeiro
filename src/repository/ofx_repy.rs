@@ -81,7 +81,6 @@ fn add_banco(banco: &String, conta: &String) -> Banco {
         nome: banco.clone(),
         contas: vec![Conta {
             id: conta.clone(),
-            id_banco: banco.clone(),
             nome: conta.clone(),
         }],
     }
