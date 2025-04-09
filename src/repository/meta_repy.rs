@@ -1,13 +1,17 @@
-use crate::dto::{Meta, CSV};
+use crate::dto::Meta;
 
-use super::file_repy::{arq_escrever_linhas, arq_ler};
+use super::file_repy::{arq_escrever, arq_ler};
 
 const FIN: &str = ".financeiro";
-const METAS: &str = "metas.csv";
+const METAS: &str = "metas.json";
 
 impl Meta{
     pub fn listar() -> Vec<Meta> {
-        arq_ler(FIN, METAS).map(Meta::from_csv).collect()
+        let mut json: String = arq_ler(FIN, METAS).collect();
+        if json.is_empty() {
+            json = "[]".to_string();
+        }
+        serde_json::from_str(&json).unwrap()
     }
 
     pub fn salvar(&self) {
@@ -19,7 +23,7 @@ impl Meta{
             lista.push(self.clone());
         }
 
-        arq_escrever_linhas(FIN, METAS, &lista.into_iter().map(|i| i.to_csv()).collect())
+        arq_escrever(FIN, METAS, serde_json::to_string(&lista).unwrap());
     }
 
     pub fn deletar(&self) {
@@ -29,6 +33,6 @@ impl Meta{
             lista.remove(pos);
         }
 
-        arq_escrever_linhas(FIN, METAS, &lista.into_iter().map(|i| i.to_csv()).collect::<Vec<_>>());
+        arq_escrever(FIN, METAS, serde_json::to_string(&lista).unwrap());
     }
 }

@@ -1,6 +1,8 @@
+use serde::{Deserialize, Serialize};
+
 use super::Conta;
 
-#[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Banco {
     pub id: String,
     pub nome: String,
