@@ -1,8 +1,8 @@
 use chrono::{Datelike, NaiveDate};
 
-use super::{gerar_sha1, ParcelaDivida, Unico, CSV};
+use super::{gerar_sha1, ParcelaDivida, Unico};
 
-#[derive(Clone, Default, PartialEq)]
+#[derive(Clone, Default, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Divida {
     pub id: String,
     pub nome: String,
@@ -127,43 +127,4 @@ impl Unico for Divida {
             .join("-"),
         )
     }
-}
-impl CSV for Divida {
-    fn from_csv(value: String) -> Self {
-        let values: Vec<String> = value.split(';').map(String::from).collect();
-        Divida::from_csv_vec(values)
-    }
-
-    fn from_csv_vec(value: Vec<String>) -> Self {
-        Divida {
-            id: value[0].clone(),
-            nome: value[1].clone(),
-            cobranca_automatica: value[2].parse::<bool>().unwrap(),
-            parcelas: get_parcelas_csv(value.clone().drain(3..).collect()),
-        }
-    }
-
-    fn to_csv(&self) -> String {
-        let mut resp: Vec<String> = Vec::new();
-
-        resp.push(self.id.clone());
-        resp.push(self.nome.clone());
-        resp.push(self.cobranca_automatica.to_string());
-
-        self.parcelas.iter().for_each(|p| {
-            resp.push(p.to_csv());
-        });
-
-        resp.join(";")
-    }
-}
-
-fn get_parcelas_csv(value: Vec<String>) -> Vec<ParcelaDivida> {
-    let mut parcelas: Vec<ParcelaDivida> = Vec::new();
-
-    value
-        .iter()
-        .for_each(|v| parcelas.push(ParcelaDivida::from_csv(v.to_string())));
-
-    parcelas
 }
