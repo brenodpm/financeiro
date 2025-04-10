@@ -43,18 +43,6 @@ pub fn arq_escrever(dir: &str, file: &str, texto: String) {
         .expect("Falha ao escrever no arquivo");
 }
 
-pub fn arq_escrever_linhas(dir: &str, file: &str, linhas: &Vec<String>) {
-    let mut path = get_home_dir();
-    path.push(&dir);
-    checar_dir(&path);
-
-    path.push(&file);
-    checar_arq(&path);
-
-    write(path, linhas.join("\n"))
-        .expect("Falha ao escrever no arquivo");
-}
-
 pub fn arq_deletar_dir(dir: &str){
     let mut path = get_home_dir();
     path.push(&dir);

@@ -47,9 +47,3 @@ fn gerar_sha1(valor: String) -> String {
 pub trait Unico {
     fn gerar_id(&mut self);
 }
-
-pub trait CSV {
-    fn from_csv(value: String) -> Self;
-    fn from_csv_vec(value: Vec<String>) -> Self;
-    fn to_csv(&self) -> String;
-}

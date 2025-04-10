@@ -1,4 +1,4 @@
-use crate::dto::{Lancamento, CSV};
+use crate::dto::{Lancamento, OptionalLazy};
 
 use super::file_repy::{arq_escrever, arq_ler};
 
@@ -58,6 +58,17 @@ impl Lancamento {
     }
     
     pub fn lancamentos_salvar(itens: &Vec<Lancamento>) {
-        arq_escrever(FIN, LANCAMENTOS, serde_json::to_string(&itens).unwrap());
+        let mut salvar =  itens.clone();
+
+        for lanc in salvar.iter_mut() {
+            if let OptionalLazy::Some(t) = lanc.categoria.clone(){
+                lanc.categoria = OptionalLazy::Id(t.id);
+            }
+            if let OptionalLazy::Some(r) = lanc.regra.clone(){
+                lanc.regra = OptionalLazy::Id(r.id);
+            }
+        }
+
+        arq_escrever(FIN, LANCAMENTOS, serde_json::to_string(&salvar).unwrap());
     }
 }

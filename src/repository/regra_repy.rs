@@ -56,5 +56,11 @@ impl Regra {
 fn salvar(mut regras: Vec<Regra>) {
     regras.sort_by(|a, b| b.regex.len().cmp(&a.regex.len()));
 
+    for regra in regras.iter_mut() {
+        if let Lazy::Some(t) = regra.categoria.clone(){
+            regra.categoria = Lazy::Id(t.id);
+        }
+    }
+
     arq_escrever(FIN, REGRAS, serde_json::to_string(&regras).unwrap());
 }
