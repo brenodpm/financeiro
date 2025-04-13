@@ -5,15 +5,10 @@ use ratatui::{
     buffer::Buffer,
     crossterm::event::{KeyCode, KeyEvent},
     layout::Rect,
-    style::{
-        palette::tailwind::WHITE, Modifier, Style, Stylize,
-    },
+    style::{palette::tailwind::WHITE, Modifier, Style, Stylize},
     symbols,
     text::{Line, Span, Text},
-    widgets::{
-        Block, Borders, Padding, Paragraph,
-        Widget, Wrap,
-    },
+    widgets::{Block, Borders, Padding, Paragraph, Widget, Wrap},
 };
 
 use crate::estilo::{estilo_input, estilo_input_foco, fg_color};
@@ -88,7 +83,7 @@ impl Input {
     pub fn new_monetario(nome: &str, valor: f64) -> Self {
         let mut resp = Input {
             nome: nome.to_string(),
-            valor: valor.to_string(),
+            valor: valor.to_string().replace(".", ","),
 
             tipo: TipoValor::Monetario,
             cursor: 0usize,
@@ -153,7 +148,9 @@ impl Input {
             });
 
         let mut spans = Vec::new();
-        let lines: Vec<&str> = self.valor.split('\n').collect();
+        let mut texto = self.valor.clone();
+        texto.push(' ');
+        let lines: Vec<&str> = texto.split('\n').collect();
 
         for (line_idx, line) in lines.iter().enumerate() {
             let mut line_spans = Vec::new();
@@ -190,8 +187,10 @@ impl Input {
             KeyCode::Delete => self.deletar(),
             KeyCode::Home => self.inicio(),
             KeyCode::End => self.fim(),
-            KeyCode::Enter => if self.tipo == TipoValor:: MultLinha {
-                self.digitar('\n');
+            KeyCode::Enter => {
+                if self.tipo == TipoValor::MultLinha {
+                    self.digitar('\n');
+                }
             }
             _ => {}
         }
@@ -338,35 +337,45 @@ impl Input {
     }
 
     fn formatar_monetario(&mut self) {
+        // remover tudo menos numero e virgula
         let pontos_antes = self.valor[0..self.byte_index()]
             .chars()
             .filter(|c| *c == '.')
             .count();
         self.valor.retain(|c| c.is_digit(10) || c == ',');
 
-        while self.valor.len() > 0 && self.valor.chars().nth(0usize).unwrap() == '0' {
-            self.valor.remove(0usize);
-            self.para_esquerda();
-        }
-
-        if self.valor.len() > 0 && self.valor.chars().nth(0usize).unwrap() == ',' {
-            self.valor.insert(0, '0');
-        }
-
-        if self.valor.len() == 0 {
-            self.valor.push_str("0,00");
-        }
-
+        // verificar se tem virgula
         if !self.valor.contains(',') {
             self.valor.push_str(",00");
         }
 
+        // verificar casas à dieita
         let mut idx = self.valor.chars().position(|c| c == ',').unwrap_or(0);
         while self.valor.len() < idx + 3 {
             self.valor.push('0');
         }
+        for i in (idx+1)..self.valor.len() {
+            if self.valor.chars().nth(i).unwrap() == ',' {
+                self.valor.remove(i);
+                self.valor.push_str("0");
+            }
+        }
         self.valor.truncate(idx + 3);
 
+        // verificar casas à esquerda
+        if self.valor.chars().nth(0usize).unwrap() == ',' {
+            self.valor.insert(0, '0');
+        }
+        while self.valor.len() > 0
+            && self.valor.chars().nth(0usize).unwrap() == '0'
+            && self.valor.chars().nth(1usize).unwrap() != ','
+        {
+            self.valor.remove(0usize);
+            self.para_esquerda();
+        }
+
+        // adicionar pontos
+        idx = self.valor.chars().position(|c| c == ',').unwrap_or(0);
         while idx > 3 {
             idx -= 3;
             self.valor.insert(idx, '.');

@@ -1,10 +1,12 @@
 use std::{
     fs::{create_dir_all, remove_dir_all, write, File},
-    io::{BufRead, BufReader, Lines, Read}, iter::Flatten, path::{Path, PathBuf},
+    io::{BufRead, BufReader, Lines, Read},
+    iter::Flatten,
+    path::{Path, PathBuf},
 };
 
-use encoding_rs::Encoding;
 use chardet::detect;
+use encoding_rs::Encoding;
 
 use crate::get_home_dir;
 
@@ -13,11 +15,14 @@ pub fn arq_externo_ler(arquivo: &str) -> Vec<String> {
     let mut buffer = Vec::new();
     file.read_to_end(&mut buffer).expect("Failed to read file");
 
-    let (encoding_name,_, _) = detect(&buffer);
+    let (encoding_name, _, _) = detect(&buffer);
     let encoding = Encoding::for_label(encoding_name.as_bytes()).expect("Failed to get encoding");
 
     let (cow, _, _) = encoding.decode(&buffer);
-    cow.to_string().lines().map(|s| s.trim().replace(";", ",")).collect()
+    cow.to_string()
+        .lines()
+        .map(|s| s.trim().replace(";", ","))
+        .collect()
 }
 
 pub fn arq_ler(dir: &str, file: &str) -> Flatten<Lines<BufReader<File>>> {
@@ -39,14 +44,16 @@ pub fn arq_escrever(dir: &str, file: &str, texto: String) {
     path.push(&file);
     checar_arq(&path);
 
-    write(path, texto)
-        .expect("Falha ao escrever no arquivo");
+    write(path, texto).expect("Falha ao escrever no arquivo");
 }
 
-pub fn arq_deletar_dir(dir: &str){
+pub fn arq_deletar_dir(dir: &str) {
     let mut path = get_home_dir();
     path.push(&dir);
-    remove_dir_all(path).unwrap();
+
+    if Path::new(&path).exists() {
+        remove_dir_all(path).unwrap();
+    }
 }
 
 fn checar_dir(path: &PathBuf) {
