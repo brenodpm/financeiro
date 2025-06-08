@@ -65,9 +65,9 @@ impl Widget for &mut EditarDivida {
                     "↓↑ (mover)",
                     "Enter (alterar pago)",
                     "ESC Sair",
-                    "INSERT (salvar)",
+                    "F5 (salvar)",
                 ],
-                _ => vec!["Editar", "Tab (próximo)", "ESC Sair", "INSERT (salvar)"],
+                _ => vec!["Editar", "Tab (próximo)", "ESC Sair", "F5 (salvar)"],
             },
             rodape,
             buf,
@@ -145,7 +145,7 @@ impl EditarDivida {
                 KeyCode::Down => self.select_next(),
                 KeyCode::Up => self.select_previous(),
                 KeyCode::Enter | KeyCode::Right => self.mudar_pagamento(),
-                KeyCode::Insert => self.salvar(),
+                KeyCode::F(5) => self.salvar(),
                 KeyCode::Esc => self.status = Status::Sair(None),
                 _ => {}
             }
@@ -154,7 +154,7 @@ impl EditarDivida {
                 KeyCode::Tab => self.proximo_input(),
                 KeyCode::BackTab => self.anterior_input(),
                 KeyCode::Esc => self.status = Status::Sair(None),
-                KeyCode::Insert => self.salvar(),
+                KeyCode::F(5) => self.salvar(),
                 _ => self.alterar_input(key),
             }
         }

@@ -1,3 +1,5 @@
+use std::env;
+
 use color_eyre::Result;
 use ratatui::{
     buffer::Buffer,
@@ -78,9 +80,11 @@ impl Widget for &mut Menu {
         ])
         .areas(area);
 
-        principal_titulo("Financeiro",titulo, buf);
+        let versao = vec!["V.:", env!("CARGO_PKG_VERSION")].join(" ");
+
+        principal_titulo("Financeiro", titulo, buf);
         principal_comandos(
-            vec!["↓↑ mover", "→ selecionar", "ESC Sair"],
+            vec!["↓↑ mover", "→ selecionar", "ESC Sair", versao.as_str()],
             rodape,
             buf,
         );

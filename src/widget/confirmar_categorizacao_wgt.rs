@@ -128,7 +128,7 @@ impl ConfirmarCategorias {
             KeyCode::Down => self.select_next(),
             KeyCode::Up => self.select_previous(),
             KeyCode::Right | KeyCode::Enter => self.categorizar(terminal),
-            KeyCode::Insert => self.atualizar(),
+            KeyCode::F(5) => self.atualizar(),
             _ => {}
         }
     }
@@ -214,7 +214,7 @@ impl ConfirmarCategorias {
     }
 
     fn render_footer(area: Rect, buf: &mut Buffer) {
-        Paragraph::new("Use ↓↑ mover, → selecionar categoria, INSERT categorizar, ESC sair")
+        Paragraph::new("Use ↓↑ mover, → selecionar categoria, F5 categorizar, ESC sair")
             .centered()
             .render(area, buf);
     }

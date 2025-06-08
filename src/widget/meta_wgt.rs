@@ -69,7 +69,7 @@ impl Widget for &mut EditarMeta {
             titulo,
             buf,
         );
-        principal_comandos(vec!["(Editar)","TAB (próximo)","Esc (sair)", "INSERT (salvar)"], rodape, buf);
+        principal_comandos(vec!["(Editar)","TAB (próximo)","Esc (sair)", "F5 (salvar)"], rodape, buf);
         self.render(corpo, buf)
     }
 }
@@ -99,12 +99,12 @@ impl EditarMeta {
             ativo: Check::new("Ativo", true),
             desc: Input::new_multilinhas("Descrição", "".to_string()),
 
-            meta_tipo: ListaSuspensa::new_string("Tipo", tipos_metas),
-            meta_filtro: ListaSuspensa::new("Filtro", Vec::new()),
+            meta_tipo: ListaSuspensa::new_string("Tipo", tipos_metas, false),
+            meta_filtro: ListaSuspensa::new("Filtro", Vec::new(), false),
 
-            fluxo: ListaSuspensa::new_string("Fluxo", fluxos),
-            metrica: ListaSuspensa::new_string("Métrica", metrica),
-            periodo: ListaSuspensa::new_string("Período", periodos),
+            fluxo: ListaSuspensa::new_string("Fluxo", fluxos, false),
+            metrica: ListaSuspensa::new_string("Métrica", metrica, false),
+            periodo: ListaSuspensa::new_string("Período", periodos, false),
             valor: Input::new_monetario("Valor", 0.0f64),
         }
     }
@@ -148,7 +148,7 @@ impl EditarMeta {
             KeyCode::Esc => self.status = Status::Sair(None),
             KeyCode::Tab => self.proximo_input(),
             KeyCode::BackTab => self.anterior_input(),
-            KeyCode::Insert => self.salvar(),
+            KeyCode::F(5) => self.salvar(),
             _ => self.alterar_input(key, terminal),
         }
     }

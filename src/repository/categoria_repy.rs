@@ -22,13 +22,25 @@ impl Categoria {
 
         if resp.len() == 0usize {
             resp = Categoria::lista_padrao();
-            Categoria::salvar(&mut resp);
+            Categoria::salvar_lista(&mut resp);
         }
 
         resp
     }
 
-    pub fn salvar(categorias: &mut Vec<Categoria>) {
+    pub fn salvar(&self) {
+        let mut lista = Categoria::listar();
+
+        if let Some(i) = lista.iter().position(|a| a.id == self.id) {
+            lista[i] = self.clone();
+        } else {
+            lista.push(self.clone());
+        }
+
+        arq_escrever(FIN, CAT, serde_json::to_string(&lista).unwrap());
+    }
+
+    pub fn salvar_lista(categorias: &mut Vec<Categoria>) {
         categorias.into_iter().for_each(|c| {
             if c.id.is_empty() {
                 c.gerar_id();
@@ -36,5 +48,15 @@ impl Categoria {
         });
 
         arq_escrever(FIN, CAT, serde_json::to_string(&categorias).unwrap());
+    }
+
+    pub fn deletar(&self) {
+        let mut lista = Categoria::listar();
+
+        if let Some(pos) = lista.iter().position(|a| a.id == self.id) {
+            lista.remove(pos);
+        }
+
+        arq_escrever(FIN, CAT, serde_json::to_string(&lista).unwrap());
     }
 }

@@ -1,7 +1,7 @@
 use color_eyre::eyre::Result;
 use ratatui::DefaultTerminal;
 
-use crate::widget::{Categorizador, EditarConfiguracoes, GeradorDash, ListaDividas, ListaMeta, Menu};
+use crate::widget::{Categorizador, EditarConfiguracoes, GeradorDash, ListaCategoria, ListaDividas, ListaMeta, Menu};
 
 #[derive(Clone)]
 pub enum Etapa {
@@ -11,6 +11,7 @@ pub enum Etapa {
     Menu,
     Dash,
     Configuracoes,
+    Categorias,
     Sair,
 }
 
@@ -35,6 +36,7 @@ impl App {
                 ("Metas".to_string(), Etapa::Metas),
                 ("Gerar Gráfico".to_string(), Etapa::Dash),
                 ("Configurações".to_string(), Etapa::Configuracoes),
+                ("Categorias".to_string(), Etapa::Categorias),
                 ("Sair".to_string(), Etapa::Sair),
             ],
             etapa: Option::None,
@@ -50,6 +52,7 @@ impl App {
                 Etapa::Dividas => self.dividas(&mut terminal),
                 Etapa::Dash => self.dash(&mut terminal),
                 Etapa::Configuracoes => self.configuracoes(&mut terminal),
+                Etapa::Categorias => self.categorias(&mut terminal),
                 
                 Etapa::Sair => break,
             }
@@ -112,6 +115,16 @@ impl App {
             Ok(_) => {}
             Err(e) => {
                 log::info!("Falha ao abrir configurações: {e}");
+            }
+        }
+        self.etapa = Etapa::Menu
+    }
+
+    fn categorias(&mut self, terminal: &mut DefaultTerminal) {
+        match ListaCategoria::default().run(terminal) {
+            Ok(_) => {}
+            Err(e) => {
+                log::info!("Falha ao abrir categirias: {e}");
             }
         }
         self.etapa = Etapa::Menu

@@ -2,9 +2,7 @@ use ratatui::{
     buffer::Buffer,
     crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind},
     layout::Rect,
-    style::{
-        Style, Stylize,
-    },
+    style::{Style, Stylize},
     symbols,
     text::{Line, Span, Text},
     widgets::{
@@ -14,12 +12,30 @@ use ratatui::{
     DefaultTerminal,
 };
 
-use crate::estilo::{alternate_colors, estilo_input, estilo_input_foco, fg_color, GERAL_BG, LISTA_BORDA_ESTILO, LISTA_SELECIONADO_ESTILO};
+use crate::estilo::{
+    alternate_colors, estilo_input, estilo_input_foco, fg_color, GERAL_BG, LISTA_BORDA_ESTILO,
+    LISTA_SELECIONADO_ESTILO,
+};
 
 #[derive(Clone)]
 pub struct ItemListaSuspensa {
     pub id: String,
     pub texto: String,
+}
+
+impl ItemListaSuspensa {
+    pub fn new(texto: &str) -> Self {
+        Self {
+            id: texto.to_string(),
+            texto: texto.to_string(),
+        }
+    }
+    pub fn new2(id: &str, texto: &str) -> Self {
+        Self {
+            id: id.to_string(),
+            texto: texto.to_string(),
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -66,7 +82,11 @@ impl Widget for &mut ListaSuspensa {
 }
 
 impl ListaSuspensa {
-    pub fn new(nome: &str, itens: Vec<ItemListaSuspensa>) -> Self {
+    pub fn new(nome: &str, mut itens: Vec<ItemListaSuspensa>, primeiro_vazio: bool) -> Self {
+        if primeiro_vazio {
+            itens.insert(0, ItemListaSuspensa::new(""));
+        }
+
         ListaSuspensa {
             nome: nome.to_string(),
             selecionado: 0usize,
@@ -75,7 +95,11 @@ impl ListaSuspensa {
             modo_lista_state: Default::default(),
         }
     }
-    pub fn new_string(nome: &str, itens: Vec<&str>) -> Self {
+    pub fn new_string(nome: &str, mut itens: Vec<&str>, primeiro_vazio: bool) -> Self {
+        if primeiro_vazio {
+            itens.insert(0, "");
+        }
+
         ListaSuspensa {
             nome: nome.to_string(),
             selecionado: 0usize,
@@ -104,10 +128,10 @@ impl ListaSuspensa {
         }
     }
 
-    pub fn set_id_selecionado(&mut self, id:String) {
+    pub fn set_id_selecionado(&mut self, id: String) {
         if let Some(pos) = self.lista.iter().position(|item| item.id == id) {
             self.selecionado = pos;
-        }else{
+        } else {
             self.selecionado = 0usize;
         }
     }

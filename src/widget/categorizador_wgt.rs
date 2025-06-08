@@ -123,7 +123,7 @@ impl Categorizador {
             KeyCode::Down => self.select_next(),
             KeyCode::Up => self.select_previous(),
             KeyCode::Right | KeyCode::Enter => self.categorizar(terminal),
-            KeyCode::Insert => self.atualizar(terminal),
+            KeyCode::F(5) => self.atualizar(terminal),
             _ => {}
         }
     }
@@ -195,7 +195,7 @@ impl Widget for &mut Categorizador {
         .areas(area);
 
         principal_titulo("Categorizador",titulo, buf);
-        principal_comandos(vec!["↓↑ (mover)", "ENTER (selecionar categoria)", "INSERT (efetivar)", "ESC (sair)"], rodape, buf);
+        principal_comandos(vec!["↓↑ (mover)", "ENTER (selecionar categoria)", "F5 (efetivar)", "ESC (sair)"], rodape, buf);
         
         let [list_area, item_area] =
             Layout::vertical([Constraint::Fill(1), Constraint::Fill(1)]).areas(corpo);

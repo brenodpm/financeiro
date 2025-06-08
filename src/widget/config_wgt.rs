@@ -52,7 +52,7 @@ impl Widget for &mut EditarConfiguracoes {
         principal_comandos(
             match self.status {
                 Status::EditarSalario => vec!["Tab (Proximo)", "ESC Sair"],
-                _ => vec!["Editar", "Tab (próximo)", "ESC Sair", "INSERT (salvar)"],
+                _ => vec!["Editar", "Tab (próximo)", "ESC Sair", "F5 (salvar)"],
             },
             rodape,
             buf,

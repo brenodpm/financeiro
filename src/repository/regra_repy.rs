@@ -51,13 +51,21 @@ impl Regra {
 
         salvar(atuais);
     }
+
+    pub fn remover(&self) {
+        let regras: Vec<Regra> = Regra::listar()
+            .into_iter()
+            .filter(|r| r.id != self.id)
+            .collect();
+        salvar(regras);
+    }
 }
 
 fn salvar(mut regras: Vec<Regra>) {
     regras.sort_by(|a, b| b.regex.len().cmp(&a.regex.len()));
 
     for regra in regras.iter_mut() {
-        if let Lazy::Some(t) = regra.categoria.clone(){
+        if let Lazy::Some(t) = regra.categoria.clone() {
             regra.categoria = Lazy::Id(t.id);
         }
     }

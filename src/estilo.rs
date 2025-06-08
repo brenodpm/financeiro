@@ -2,7 +2,7 @@ use ratatui::{
     buffer::Buffer,
     layout::{Constraint, Layout, Rect},
     style::{
-        palette::tailwind::{BLUE, SLATE, WHITE},
+        palette::tailwind::{BLUE, RED, SLATE, WHITE},
         Color, Modifier, Style, Stylize,
     },
     widgets::{Paragraph, Widget},
@@ -23,6 +23,14 @@ pub fn principal_titulo(titulo:&str, area: Rect, buf: &mut Buffer) {
         .centered()
         .fg(SLATE.c100)
         .bg(BLUE.c800)
+        .render(area, buf);
+}
+pub fn principal_titulo_alerta(titulo:&str, area: Rect, buf: &mut Buffer) {
+    Paragraph::new(titulo)
+        .bold()
+        .centered()
+        .fg(SLATE.c100)
+        .bg(RED.c800)
         .render(area, buf);
 }
 
