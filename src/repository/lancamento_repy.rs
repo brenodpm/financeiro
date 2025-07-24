@@ -7,6 +7,20 @@ const NAO_CAT: &str = "nao-cat.json";
 const LANCAMENTOS: &str = "lancamentos.json";
 
 impl Lancamento {
+    pub fn checar_ja_importados() {
+        let mut categorizados = Lancamento::lancamentos_listar();
+
+        let mut pendente: Vec<Lancamento> = Vec::new();
+        Lancamento::nao_categorizados_listar()
+            .into_iter()
+            .for_each(|novo| {
+                if !categorizados.iter().any(|c| c.id == novo.id) {
+                    pendente.push(novo.clone());
+                }
+            });
+        Lancamento::nao_categorizados_salvar(&pendente);
+    }
+
     pub fn categorizar(itens: &Vec<Lancamento>) {
         match itens.len() {
             0 => log::info!("nenhum novo lançamento importado"),
@@ -17,7 +31,7 @@ impl Lancamento {
         let mut pendente = Lancamento::nao_categorizados_listar();
 
         itens.into_iter().for_each(|novo| {
-            if !pendente.iter().any(|a| a.id == novo.id) {
+            if novo.valor != 0f64 && !pendente.iter().any(|a| a.id == novo.id) {
                 pendente.push(novo.clone());
             }
         });

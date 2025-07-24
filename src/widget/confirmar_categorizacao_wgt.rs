@@ -1,7 +1,10 @@
 use crate::{
     dto::{
-        Categoria, FluxoRegra, Lancamento, Lazy, LazyFn, OptionalLazy, OptionalLazyFn, Regra, TipoFluxo, Unico
-    }, estilo::alternate_colors, repository::Buscar
+        Categoria, FluxoRegra, Lancamento, Lazy, LazyFn, OptionalLazy, OptionalLazyFn, Regra,
+        TipoFluxo, Unico,
+    },
+    estilo::alternate_colors,
+    repository::Buscar,
 };
 use color_eyre::Result;
 use itertools::Itertools;
@@ -179,7 +182,7 @@ impl ConfirmarCategorias {
 
                         Regra::nova(regra.clone());
                         self.itens[i].regra = OptionalLazy::Some(regra);
-                    }else{
+                    } else {
                         self.itens[i].regra = OptionalLazy::None;
                     }
                     self.itens[i].categoria = OptionalLazy::Some(cat);
@@ -236,6 +239,12 @@ impl ConfirmarCategorias {
                     Line::from(lanct.data.format("%d/%m/%Y").to_string())
                         .bg(bg)
                         .fg(fg),
+                    Line::from(match lanct.conta.clone() {
+                        Some(ct) => ct,
+                        None => "Não identificada".to_string(),
+                    })
+                    .bg(bg)
+                    .fg(fg),
                     Line::from(lanct.descricao.clone()).bg(bg).fg(fg),
                     Line::from(format!("{:.2}", lanct.valor))
                         .bg(bg)
@@ -250,13 +259,13 @@ impl ConfirmarCategorias {
 
         let widths = [
             Constraint::Length(10),
+            Constraint::Length(20),
             Constraint::Fill(3),
             Constraint::Length(10),
             Constraint::Fill(2),
         ];
 
-        let table = Table::new(rows, widths)
-            .highlight_symbol("▶ ");
+        let table = Table::new(rows, widths).highlight_symbol("▶ ");
 
         StatefulWidget::render(table, area, buf, &mut self.state);
     }

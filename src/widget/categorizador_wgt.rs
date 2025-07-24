@@ -3,21 +3,24 @@ use ratatui::{
     buffer::Buffer,
     crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind},
     layout::{Constraint, Layout, Rect},
-    style::{
-        palette::tailwind::GREEN,
-        Color, Stylize,
-    },
+    style::{palette::tailwind::GREEN, Color, Stylize},
     symbols,
     text::Line,
     widgets::{
-        Block, Borders, HighlightSpacing, List, ListItem, ListState, Paragraph,
-        StatefulWidget, Widget, Wrap,
+        Block, Borders, HighlightSpacing, List, ListItem, ListState, Paragraph, StatefulWidget,
+        Widget, Wrap,
     },
     DefaultTerminal,
 };
 use std::collections::HashMap;
 
-use crate::{dto::{Categoria, FluxoRegra, Lancamento, Lazy, NovaRegra, Regra, TipoFluxo, Unico}, estilo::{alternate_colors, principal_comandos, principal_titulo, GERAL_BG, GERAL_TEXT_FG, LISTA_BORDA_ESTILO, LISTA_SELECIONADO_ESTILO}};
+use crate::{
+    dto::{Categoria, Conta, FluxoRegra, Lancamento, Lazy, NovaRegra, Regra, TipoFluxo, Unico},
+    estilo::{
+        alternate_colors, principal_comandos, principal_titulo, GERAL_BG, GERAL_TEXT_FG,
+        LISTA_BORDA_ESTILO, LISTA_SELECIONADO_ESTILO,
+    },
+};
 
 use super::{confirmar_categorizacao_wgt::ConfirmarCategorias, SelecionarCategoria};
 
@@ -67,6 +70,8 @@ impl Default for Categorizador {
 }
 
 fn buscar_itens() -> Vec<NovaRegra> {
+    Lancamento::checar_ja_importados();
+
     let mut entradas: HashMap<String, Vec<Lancamento>> = HashMap::new();
     let mut saidas: HashMap<String, Vec<Lancamento>> = HashMap::new();
 
@@ -104,6 +109,7 @@ fn buscar_itens() -> Vec<NovaRegra> {
 }
 impl Categorizador {
     pub fn run(mut self, terminal: &mut DefaultTerminal) -> Result<()> {
+        self.atualizar(terminal);
         self.state.select_first();
         while !self.should_exit && self.items.len() > 0 {
             terminal.draw(|frame| frame.render_widget(&mut self, frame.area()))?;
@@ -194,9 +200,18 @@ impl Widget for &mut Categorizador {
         ])
         .areas(area);
 
-        principal_titulo("Categorizador",titulo, buf);
-        principal_comandos(vec!["↓↑ (mover)", "ENTER (selecionar categoria)", "F5 (efetivar)", "ESC (sair)"], rodape, buf);
-        
+        principal_titulo("Categorizador", titulo, buf);
+        principal_comandos(
+            vec![
+                "↓↑ (mover)",
+                "ENTER (selecionar categoria)",
+                "F5 (efetivar)",
+                "ESC (sair)",
+            ],
+            rodape,
+            buf,
+        );
+
         let [list_area, item_area] =
             Layout::vertical([Constraint::Fill(1), Constraint::Fill(1)]).areas(corpo);
 
@@ -254,7 +269,11 @@ impl Categorizador {
                 .into_iter()
                 .map(|l| {
                     format!(
-                        "Data: {}; Valor: RS {:0.02}",
+                        "Conta: {}; Data: {}; Valor: RS {:0.02}",
+                        match l.conta {
+                            Some(ct) => ct,
+                            None => "Não identificada".to_string(),
+                        },
                         l.data.format("%d/%m/%Y"),
                         l.valor
                     )

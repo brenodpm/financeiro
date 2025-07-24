@@ -10,7 +10,11 @@ pub struct NovaRegra {
 }
 
 impl NovaRegra {
-    pub fn new(texto: String, fluxo: FluxoRegra, lancamentos: Vec<Lancamento>) -> Self {
+    pub fn new(
+        texto: String,
+        fluxo: FluxoRegra,
+        lancamentos: Vec<Lancamento>,
+    ) -> Self {
         Self {
             texto: texto.clone(),
             categoria: None,
