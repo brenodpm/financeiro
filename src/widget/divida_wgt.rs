@@ -1,16 +1,17 @@
 use crate::{
     componentes::{check_wgt::Check, input_wgt::Input},
     dto::{DadosDivida, Divida, ParcelaDivida},
-    estilo::{alternate_colors, principal_comandos, principal_titulo, GERAL_BG, LISTA_BORDA_ESTILO, LISTA_SELECIONADO_ESTILO},
+    estilo::{
+        alternate_colors, principal_comandos, principal_titulo, GERAL_BG, LISTA_BORDA_ESTILO,
+        LISTA_SELECIONADO_ESTILO,
+    },
 };
 use color_eyre::Result;
 use ratatui::{
     buffer::Buffer,
     crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind},
     layout::{Constraint, Layout, Rect},
-    style::
-        Stylize
-    ,
+    style::Stylize,
     symbols,
     text::Line,
     widgets::{
@@ -134,34 +135,143 @@ impl EditarDivida {
         }
         Ok(None)
     }
-
     pub fn handle_key(&mut self, key: KeyEvent) {
         if key.kind != KeyEventKind::Press {
             return;
         }
 
-        if self.status == Status::AltLista {
+        match key.code {
+            KeyCode::F(5) => self.salvar(),
+            KeyCode::Esc => self.status = Status::Sair(None),
+            _ => match self.status {
+                Status::AltNome => self.handle_key_alt_nome(key),
+                Status::AltQuantidade => self.handle_key_alt_quant(key),
+                Status::AltValor => self.handle_key_alt_valor(key),
+                Status::AltInicio => self.handle_key_alt_inicio(key),
+                Status::AltPagos => self.handle_key_alt_pagos(key),
+                Status::AltCobrancaAuto => self.handle_key_alt_cobranca_auto(key),
+                Status::AltLista => self.handle_key_alt_lista(key),
+                Status::Quitar => self.handle_key_alt_quitar(key),
+                Status::Sair(_) => {}
+            },
+        }
+    }
+
+    fn handle_key_alt_nome(&mut self, key: KeyEvent) {
+        match key.code {
+            KeyCode::Tab | KeyCode::Down => {
+                if self.divida.id.is_empty() {
+                    self.status = Status::AltQuantidade;
+                } else {
+                    self.status = Status::AltCobrancaAuto;
+                }
+            }
+            KeyCode::BackTab | KeyCode::Up => self.set_alterar_lista(),
+            _ => self.nome.handle_key(key),
+        }
+    }
+
+    fn handle_key_alt_quant(&mut self, key: KeyEvent) {
+        match key.code {
+            KeyCode::Tab => self.status = Status::AltValor,
+            KeyCode::Down => self.status = Status::AltPagos,
+            KeyCode::BackTab | KeyCode::Up => self.status = Status::AltNome,
+            _ => self.quant.handle_key(key),
+        }
+    }
+
+    fn handle_key_alt_valor(&mut self, key: KeyEvent) {
+        match key.code {
+            KeyCode::Tab => self.status = Status::AltInicio,
+            KeyCode::Down => self.status = Status::AltCobrancaAuto,
+            KeyCode::BackTab => self.status = Status::AltQuantidade,
+            KeyCode::Up => self.status = Status::AltNome,
+            _ => self.valor.handle_key(key),
+        }
+    }
+
+    fn handle_key_alt_inicio(&mut self, key: KeyEvent) {
+        match key.code {
+            KeyCode::Tab => self.status = Status::AltPagos,
+            KeyCode::Down => self.status = Status::AltCobrancaAuto,
+            KeyCode::BackTab => self.status = Status::AltValor,
+            KeyCode::Up => self.status = Status::AltNome,
+            _ => self.inicio.handle_key(key),
+        }
+    }
+
+    fn handle_key_alt_pagos(&mut self, key: KeyEvent) {
+        match key.code {
+            KeyCode::Tab | KeyCode::Right => self.status = Status::AltCobrancaAuto,
+            KeyCode::Down => self.status = Status::AltNome,
+            KeyCode::BackTab | KeyCode::Left => self.status = Status::AltInicio,
+            KeyCode::Up => self.status = Status::AltQuantidade,
+            _ => self.pagos.handle_key(key),
+        }
+    }
+
+    fn handle_key_alt_cobranca_auto(&mut self, key: KeyEvent) {
+        if self.divida.id.is_empty() {
             match key.code {
-                KeyCode::Down => self.select_next(),
-                KeyCode::Up => self.select_previous(),
-                KeyCode::Enter | KeyCode::Right => self.mudar_pagamento(),
-                KeyCode::F(5) => self.salvar(),
-                KeyCode::Esc => self.status = Status::Sair(None),
-                _ => {}
+                KeyCode::Tab | KeyCode::Down | KeyCode::Right => self.status = Status::AltNome,
+                KeyCode::BackTab | KeyCode::Left => self.status = Status::AltPagos,
+                KeyCode::Up => self.status = Status::AltValor,
+                _ => self.cobranca_auto.handle_key(key),
             }
         } else {
             match key.code {
-                KeyCode::Tab => self.proximo_input(),
-                KeyCode::BackTab => self.anterior_input(),
-                KeyCode::Esc => self.status = Status::Sair(None),
-                KeyCode::F(5) => self.salvar(),
-                _ => self.alterar_input(key),
+                KeyCode::Tab | KeyCode::Right => self.status = Status::Quitar,
+                KeyCode::Down => self.set_alterar_lista(),
+                KeyCode::BackTab | KeyCode::Left => self.status = Status::AltNome,
+                KeyCode::Up => self.status = Status::AltNome,
+                _ => self.cobranca_auto.handle_key(key),
             }
         }
     }
 
+    fn handle_key_alt_lista(&mut self, key: KeyEvent) {
+        match key.code {
+            KeyCode::Down => self.select_next(),
+            KeyCode::Up => self.select_previous(),
+            KeyCode::Enter => self.mudar_pagamento(),
+            KeyCode::Tab | KeyCode::Right => {
+                self.status = Status::AltNome;
+                self.state.select(None);
+            }
+            KeyCode::BackTab | KeyCode::Left => {
+                self.status = Status::Quitar;
+                self.state.select(None);
+            }
+            _ => {}
+        }
+    }
+
+    fn handle_key_alt_quitar(&mut self, key: KeyEvent) {
+        match key.code {
+            KeyCode::Tab | KeyCode::Down => self.set_alterar_lista(),
+            KeyCode::BackTab => self.status = Status::AltCobrancaAuto,
+            KeyCode::Up => self.status = Status::AltNome,
+            _ => self.quitar.handle_key(key),
+        }
+    }
+
+    fn set_alterar_lista(&mut self) {
+        self.status = Status::AltLista;
+        self.state.select(Some(self.divida.parcelas.pagas().len()));
+    }
+
     fn select_next(&mut self) {
-        self.state.select_next();
+        match self.state.selected() {
+            Some(i) => {
+                if i < self.divida.parcelas.len() - 1 {
+                    self.state.select_next();
+                } else {
+                    self.status = Status::AltNome;
+                    self.state.select(None);
+                }
+            }
+            None => self.state.select_last(),
+        }
     }
 
     fn select_previous(&mut self) {
@@ -170,7 +280,8 @@ impl EditarDivida {
                 if i > 0 {
                     self.state.select_previous();
                 } else {
-                    self.status = Status::AltNome;
+                    self.status = Status::AltCobrancaAuto;
+                    self.state.select(None);
                 }
             }
             None => self.state.select_first(),
@@ -189,60 +300,6 @@ impl EditarDivida {
             Status::AltLista => {}
 
             Status::Sair(_) => {}
-        }
-    }
-
-    fn proximo_input(&mut self) {
-        if self.divida.id.is_empty() {
-            match self.status {
-                Status::AltNome => self.status = Status::AltQuantidade,
-                Status::AltQuantidade => self.status = Status::AltValor,
-                Status::AltValor => self.status = Status::AltInicio,
-                Status::AltInicio => self.status = Status::AltPagos,
-                Status::AltPagos => self.status = Status::AltCobrancaAuto,
-                Status::AltCobrancaAuto => self.status = Status::AltNome,
-
-                Status::Sair(_) | Status::AltLista | Status::Quitar => {}
-            }
-        } else {
-            match self.status {
-                Status::AltNome => self.status = Status::AltCobrancaAuto,
-                Status::AltCobrancaAuto => self.status = Status::Quitar,
-                Status::Quitar => {
-                    self.status = Status::AltLista;
-                    self.state.select(Some(self.divida.parcelas.pagas().len()));
-                }
-                Status::AltLista => self.status = Status::AltNome,
-
-                _ => {}
-            }
-        }
-    }
-
-    fn anterior_input(&mut self) {
-        if self.divida.id.is_empty() {
-            match self.status {
-                Status::AltNome => self.status = Status::AltCobrancaAuto,
-                Status::AltQuantidade => self.status = Status::AltNome,
-                Status::AltValor => self.status = Status::AltQuantidade,
-                Status::AltInicio => self.status = Status::AltValor,
-                Status::AltPagos => self.status = Status::AltInicio,
-                Status::AltCobrancaAuto => self.status = Status::AltPagos,
-
-                Status::Sair(_) | Status::AltLista | Status::Quitar => {}
-            }
-        } else {
-            match self.status {
-                Status::AltCobrancaAuto => self.status = Status::AltNome,
-                Status::AltLista => self.status = Status::Quitar,
-                Status::Quitar => self.status = Status::AltCobrancaAuto,
-                Status::AltNome => {
-                    self.status = Status::AltLista;
-                    self.state.select(Some(self.divida.parcelas.pagas().len()));
-                }
-
-                _ => {}
-            }
         }
     }
 
@@ -400,7 +457,8 @@ impl EditarDivida {
 
         self.aberto
             .set_monetario(self.divida.parcelas.aberta().valor_total());
-        self.pago.set_monetario(self.divida.parcelas.pagas().valor_total());
+        self.pago
+            .set_monetario(self.divida.parcelas.pagas().valor_total());
         self.total.set_monetario(self.divida.parcelas.valor_total());
     }
 }

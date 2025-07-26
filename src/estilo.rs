@@ -70,7 +70,7 @@ pub fn estilo_input() -> Style {
 pub fn estilo_input_foco() -> Style {
     Style::default()
         .fg(WHITE)
-        .bg(SLATE.c900)
+        .bg(SLATE.c600)
         .add_modifier(Modifier::BOLD)
 }
 pub fn fg_color() -> Color {
