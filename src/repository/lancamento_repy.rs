@@ -8,7 +8,7 @@ const LANCAMENTOS: &str = "lancamentos.json";
 
 impl Lancamento {
     pub fn checar_ja_importados() {
-        let mut categorizados = Lancamento::lancamentos_listar();
+        let categorizados = Lancamento::lancamentos_listar();
 
         let mut pendente: Vec<Lancamento> = Vec::new();
         Lancamento::nao_categorizados_listar()

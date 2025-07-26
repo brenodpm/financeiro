@@ -15,7 +15,7 @@ use ratatui::{
 use std::collections::HashMap;
 
 use crate::{
-    dto::{Categoria, Conta, FluxoRegra, Lancamento, Lazy, NovaRegra, Regra, TipoFluxo, Unico},
+    dto::{Categoria, FluxoRegra, Lancamento, Lazy, NovaRegra, Regra, TipoFluxo, Unico},
     estilo::{
         alternate_colors, principal_comandos, principal_titulo, GERAL_BG, GERAL_TEXT_FG,
         LISTA_BORDA_ESTILO, LISTA_SELECIONADO_ESTILO,
