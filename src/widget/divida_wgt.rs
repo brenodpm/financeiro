@@ -288,21 +288,6 @@ impl EditarDivida {
         }
     }
 
-    fn alterar_input(&mut self, key: KeyEvent) {
-        match self.status {
-            Status::AltNome => self.nome.handle_key(key),
-            Status::AltQuantidade => self.quant.handle_key(key),
-            Status::AltValor => self.valor.handle_key(key),
-            Status::AltInicio => self.inicio.handle_key(key),
-            Status::AltPagos => self.pagos.handle_key(key),
-            Status::AltCobrancaAuto => self.cobranca_auto.handle_key(key),
-            Status::Quitar => self.quitar.handle_key(key),
-            Status::AltLista => {}
-
-            Status::Sair(_) => {}
-        }
-    }
-
     fn render(&mut self, area: Rect, buf: &mut Buffer) {
         let [titulo, parcelas, resumo, lista_parcelas] = Layout::vertical([
             Constraint::Length(3),

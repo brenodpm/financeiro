@@ -164,6 +164,7 @@ impl ListaDividas {
     }
 
     fn render_selected_item(&self, area: Rect, buf: &mut Buffer) {
+        let hoje = Utc::now().naive_utc().date();
         // We get the info depending on the item's state.
         let info = if let Some(i) = self.state.selected() {
             let mut info: Vec<String> = Vec::new();
@@ -180,29 +181,22 @@ impl ListaDividas {
             ));
 
             if divida.parcelas.aberta().len() > 0 {
-                let hoje = Utc::now().naive_utc().date();
                 let meses_faltando =
                     (divida.parcelas.aberta().ultima().data_vencimento.year() - hoje.year()) * 12
                         + divida.parcelas.aberta().ultima().data_vencimento.month() as i32
                         - hoje.month() as i32;
                 if meses_faltando > 0 {
                     if meses_faltando < 12 {
-                        info.push(format!(
-                            "Faltam {} meses para acabar",
-                            meses_faltando
-                        ));
+                        info.push(format!("Faltam {} meses para acabar", meses_faltando));
                     } else if meses_faltando < 24 {
                         info.push(format!(
                             "Falta 1 ano e {} meses para acabar",
-                            meses_faltando-12
+                            meses_faltando - 12
                         ));
                     } else {
-                        info.push(format!(
-                            "Faltam {} anos para acabar",
-                            meses_faltando / 12
-                        ));
+                        info.push(format!("Faltam {} anos para acabar", meses_faltando / 12));
                     }
-                }else{
+                } else {
                     info.push("Só faltam os atrasados".to_string());
                 }
             }
@@ -232,7 +226,7 @@ impl ListaDividas {
             info.push("".to_string());
             info.push("".to_string());
 
-            let mut lanctos = divida.parcelas.clone();
+            let mut lanctos = divida.parcelas.aberta().clone();
             lanctos.sort_by(|a, b| a.data_vencimento.cmp(&b.data_vencimento));
 
             let mut itens = lanctos
@@ -244,7 +238,11 @@ impl ListaDividas {
                         l.num_parcela,
                         l.valor,
                         l.data_vencimento.format("%d/%m/%y"),
-                        if l.pago { " ( PAGO )" } else { "" },
+                        if l.data_vencimento < hoje {
+                            " [ ATRASADA ]"
+                        } else {
+                            ""
+                        },
                     )
                 })
                 .collect::<Vec<String>>();
