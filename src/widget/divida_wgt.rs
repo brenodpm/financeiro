@@ -102,7 +102,7 @@ impl EditarDivida {
             divida: divida.clone(),
             nome: Input::new_texto("Nome", divida.nome.clone()),
             quant: Input::new_inteiro("Quant", divida.parcelas.quant()),
-            valor: Input::new_monetario("valor", divida.parcelas.primeira().valor),
+            valor: Input::new_monetario("valor", divida.prox_parcela().valor),
             inicio: Input::new_data(
                 "Início",
                 divida
@@ -163,7 +163,7 @@ impl EditarDivida {
                 if self.divida.id.is_empty() {
                     self.status = Status::AltQuantidade;
                 } else {
-                    self.status = Status::AltCobrancaAuto;
+                    self.status = Status::AltValor;
                 }
             }
             KeyCode::BackTab | KeyCode::Up => self.set_alterar_lista(),
@@ -181,12 +181,22 @@ impl EditarDivida {
     }
 
     fn handle_key_alt_valor(&mut self, key: KeyEvent) {
-        match key.code {
-            KeyCode::Tab => self.status = Status::AltInicio,
-            KeyCode::Down => self.status = Status::AltCobrancaAuto,
-            KeyCode::BackTab => self.status = Status::AltQuantidade,
-            KeyCode::Up => self.status = Status::AltNome,
-            _ => self.valor.handle_key(key),
+        if self.divida.id.is_empty() {
+            match key.code {
+                KeyCode::Tab => self.status = Status::AltInicio,
+                KeyCode::Down => self.status = Status::AltCobrancaAuto,
+                KeyCode::BackTab => self.status = Status::AltQuantidade,
+                KeyCode::Up => self.status = Status::AltNome,
+                _ => self.valor.handle_key(key),
+            }
+        } else {
+            match key.code {
+                KeyCode::Tab => self.status = Status::AltCobrancaAuto,
+                KeyCode::Down => self.status = Status::AltCobrancaAuto,
+                KeyCode::BackTab => self.status = Status::AltNome,
+                KeyCode::Up => self.status = Status::AltNome,
+                _ => self.valor.handle_key(key),
+            }
         }
     }
 
@@ -222,8 +232,8 @@ impl EditarDivida {
             match key.code {
                 KeyCode::Tab | KeyCode::Right => self.status = Status::Quitar,
                 KeyCode::Down => self.set_alterar_lista(),
-                KeyCode::BackTab | KeyCode::Left => self.status = Status::AltNome,
-                KeyCode::Up => self.status = Status::AltNome,
+                KeyCode::BackTab | KeyCode::Left => self.status = Status::AltValor,
+                KeyCode::Up => self.status = Status::AltValor,
                 _ => self.cobranca_auto.handle_key(key),
             }
         }
@@ -250,7 +260,7 @@ impl EditarDivida {
         match key.code {
             KeyCode::Tab | KeyCode::Down => self.set_alterar_lista(),
             KeyCode::BackTab => self.status = Status::AltCobrancaAuto,
-            KeyCode::Up => self.status = Status::AltNome,
+            KeyCode::Up => self.status = Status::AltValor,
             _ => self.quitar.handle_key(key),
         }
     }
@@ -407,6 +417,16 @@ impl EditarDivida {
     fn salvar_alteracao(&mut self) {
         self.divida.nome = self.nome.to_string();
         self.divida.cobranca_automatica = self.cobranca_auto.get_checked();
+
+        if let Some(aberta) = self.divida.parcelas.aberta().first() {
+            if self.valor.to_f64() != aberta.valor {
+                self.divida.parcelas.iter_mut().for_each(|p| {
+                    if !p.pago {
+                        p.valor = self.valor.to_f64();
+                    }
+                });
+            }
+        }
 
         if self.quitar.get_checked() {
             for parcela in self.divida.parcelas.iter_mut() {

@@ -140,6 +140,7 @@ impl ConfirmarCategorias {
         Lancamento::lancamentos_adicionar(&self.itens);
         Lancamento::nao_categorizados_salvar(&self.nao_encontrados);
 
+        Regra::remover_sem_categoria();
         self.should_exit = true;
     }
 

@@ -1,4 +1,4 @@
-use crate::dto::{Categoria, FluxoRegra, Lazy, LazyFn, Regra};
+use crate::dto::{Categoria, FluxoRegra, Lazy, LazyFn, Regra, TipoFluxo};
 
 use super::file_repy::{arq_escrever, arq_ler};
 
@@ -58,6 +58,19 @@ impl Regra {
             .filter(|r| r.id != self.id)
             .collect();
         salvar(regras);
+    }
+
+    pub fn remover_sem_categoria() {
+        let regras = Regra::listar();
+
+        regras.iter().for_each(|r| {
+            if let Lazy::Some(cat) = r.categoria.clone() {
+                match cat.tipo {
+                    TipoFluxo::SemCategoria => r.remover(),
+                    _ => {}
+                }
+            }
+        });
     }
 }
 
