@@ -1,7 +1,7 @@
 [package]
 name = "financeiro"
 version = "0.9.0"
-edition = "2025"
+edition = "2021"
 
 [dependencies]
 chardet = "0.2.4"
