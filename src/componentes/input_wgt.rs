@@ -231,9 +231,9 @@ impl Input {
         }
 
         if self.cursor > 0 {
-            let index = self.byte_index();
-            self.valor.remove(index - 1);
             self.para_esquerda();
+            let index = self.byte_index();
+            self.valor.remove(index);
             if self.tipo == TipoValor::Data {
                 self.valor.insert(index - 1, '0');
             }
