@@ -288,8 +288,9 @@ impl From<&Divida> for ListItem<'_> {
 
         let line = Line::styled(
             format!(
-                " {} {}    {:<50} R$ {:>8.2}",
+                " {} {} {}   {:<50} R$ {:>8.2}",
                 if ult_parcela.pago { "✓" } else { " " },
+                if divida.prioritaria { "⭐" } else { "  " },
                 ult_parcela.data_vencimento.format("%d/%m/%y"),
                 desc,
                 ult_parcela.valor,

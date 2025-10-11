@@ -9,19 +9,23 @@ const CAT: &str = "dividas.json";
 
 impl Divida {
     pub fn listar() -> Vec<Divida> {
+        let corte = chrono::Local::now().naive_local().date() + chrono::Duration::days(10);
         let mut json: String = arq_ler(FIN, CAT).collect();
         if json.is_empty() {
             json = "[]".to_string();
         }
         let resp: Vec<Divida> = serde_json::from_str(&json).unwrap();
 
-        resp
-            .into_iter()
+        resp.into_iter()
             .sorted_by(|a, b| {
-                a.prox_parcela()
-                    .data_vencimento
-                    .partial_cmp(&b.prox_parcela().data_vencimento)
-                    .unwrap()
+                if a.prioritaria != b.prioritaria && b.prox_parcela().data_vencimento <= corte {
+                    b.prioritaria.partial_cmp(&a.prioritaria).unwrap()
+                } else {
+                    a.prox_parcela()
+                        .data_vencimento
+                        .partial_cmp(&b.prox_parcela().data_vencimento)
+                        .unwrap()
+                }
             })
             .collect::<Vec<Divida>>()
     }
@@ -39,18 +43,22 @@ impl Divida {
     }
 
     pub fn atualizar() {
+        let corte = chrono::Local::now().naive_local().date() - chrono::Duration::days(30);
+
         let mut lista = Divida::listar()
             .into_iter()
-            .filter(|d| d.parcelas.aberta().len() > 0)
+            .filter(|d| {
+                d.parcelas.aberta().len() > 0 || d.parcelas.ultima().data_vencimento >= corte
+            })
             .collect::<Vec<Divida>>();
 
         for divida in lista.iter_mut() {
             if divida.cobranca_automatica {
-            for parcela in divida.parcelas.iter_mut() {
-                if parcela.data_vencimento < chrono::Local::now().naive_local().date() {
-                parcela.pago = true;
+                for parcela in divida.parcelas.iter_mut() {
+                    if parcela.data_vencimento < chrono::Local::now().naive_local().date() {
+                        parcela.pago = true;
+                    }
                 }
-            }
             }
         }
 

@@ -24,6 +24,7 @@ use ratatui::{
 #[derive(PartialEq)]
 enum Status {
     AltNome,
+    AltPrioritario,
     AltQuantidade,
     AltValor,
     AltInicio,
@@ -38,6 +39,7 @@ pub struct EditarDivida {
 
     divida: Divida,
     nome: Input,
+    prioritario: Check,
     quant: Input,
     valor: Input,
     inicio: Input,
@@ -83,6 +85,7 @@ impl EditarDivida {
             status: Status::AltNome,
             divida: Divida::default(),
             nome: Input::new_texto("Nome", String::new()),
+            prioritario: Check::new("Prioritário", false),
             quant: Input::new_inteiro("Quant", 0),
             valor: Input::new_monetario("valor", 0.0),
             inicio: Input::new_data("Início", "00/00/00".to_string()),
@@ -101,6 +104,7 @@ impl EditarDivida {
             status: Status::AltNome,
             divida: divida.clone(),
             nome: Input::new_texto("Nome", divida.nome.clone()),
+            prioritario: Check::new("Prioritário", divida.prioritaria),
             quant: Input::new_inteiro("Quant", divida.parcelas.quant()),
             valor: Input::new_monetario("valor", divida.prox_parcela().valor),
             inicio: Input::new_data(
@@ -145,6 +149,7 @@ impl EditarDivida {
             KeyCode::Esc => self.status = Status::Sair(None),
             _ => match self.status {
                 Status::AltNome => self.handle_key_alt_nome(key),
+                Status::AltPrioritario => self.handle_key_alt_prioritario(key),
                 Status::AltQuantidade => self.handle_key_alt_quant(key),
                 Status::AltValor => self.handle_key_alt_valor(key),
                 Status::AltInicio => self.handle_key_alt_inicio(key),
@@ -159,7 +164,8 @@ impl EditarDivida {
 
     fn handle_key_alt_nome(&mut self, key: KeyEvent) {
         match key.code {
-            KeyCode::Tab | KeyCode::Down => {
+            KeyCode::Tab => self.status = Status::AltPrioritario,
+            KeyCode::Down => {
                 if self.divida.id.is_empty() {
                     self.status = Status::AltQuantidade;
                 } else {
@@ -168,6 +174,16 @@ impl EditarDivida {
             }
             KeyCode::BackTab | KeyCode::Up => self.set_alterar_lista(),
             _ => self.nome.handle_key(key),
+        }
+    }
+
+    fn handle_key_alt_prioritario(&mut self, key: KeyEvent) {
+        match key.code {
+            KeyCode::Tab => self.status = Status::AltQuantidade,
+             KeyCode::Down => self.status = Status::AltValor,
+            KeyCode::BackTab => self.status = Status::AltNome,
+            KeyCode::Up => self.set_alterar_lista(),
+            _ => self.prioritario.handle_key(key),
         }
     }
 
@@ -205,7 +221,7 @@ impl EditarDivida {
             KeyCode::Tab => self.status = Status::AltPagos,
             KeyCode::Down => self.status = Status::AltCobrancaAuto,
             KeyCode::BackTab => self.status = Status::AltValor,
-            KeyCode::Up => self.status = Status::AltNome,
+            KeyCode::Up => self.status = Status::AltPrioritario,
             _ => self.inicio.handle_key(key),
         }
     }
@@ -307,12 +323,22 @@ impl EditarDivida {
         ])
         .areas(area);
 
-        self.nome
-            .render(self.status == Status::AltNome, titulo, buf);
+       self.render_titulo(titulo, buf);
         self.render_parcelas(parcelas, buf);
         self.render_resumo(resumo, buf);
         self.render_lista_parcelas(lista_parcelas, buf);
     }
+
+     fn render_titulo(&mut self, area: Rect, buf: &mut Buffer) {
+        let [nome, prioritario] = Layout::horizontal([
+            Constraint::Percentage(80),
+            Constraint::Percentage(20),
+        ])
+        .areas(area);
+
+        self.nome.render(self.status == Status::AltNome, nome, buf);
+        self.prioritario.render(self.status == Status::AltPrioritario, prioritario, buf);
+     }
 
     fn render_parcelas(&mut self, area: Rect, buf: &mut Buffer) {
         let [area1, area2, area3] = Layout::vertical([
@@ -417,6 +443,7 @@ impl EditarDivida {
     fn salvar_alteracao(&mut self) {
         self.divida.nome = self.nome.to_string();
         self.divida.cobranca_automatica = self.cobranca_auto.get_checked();
+        self.divida.prioritaria = self.prioritario.get_checked();
 
         if let Some(aberta) = self.divida.parcelas.aberta().first() {
             if self.valor.to_f64() != aberta.valor {
@@ -442,6 +469,7 @@ impl EditarDivida {
             Ok(data) => {
                 self.status = Status::Sair(Some(Divida::new(
                     self.nome.to_string(),
+                    self.prioritario.get_checked(),
                     self.cobranca_auto.get_checked(),
                     self.quant.to_i32(),
                     self.valor.to_f64(),

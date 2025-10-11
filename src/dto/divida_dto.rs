@@ -6,6 +6,9 @@ use super::{gerar_sha1, ParcelaDivida, Unico};
 pub struct Divida {
     pub id: String,
     pub nome: String,
+    
+    #[serde(default)]
+    pub prioritaria: bool,
     pub cobranca_automatica: bool,
     pub parcelas: Vec<ParcelaDivida>,
 }
@@ -28,6 +31,7 @@ pub trait DadosDivida {
 impl Divida {
     pub fn new(
         nome: String,
+        prioritaria: bool,
         cobranca_automatica: bool,
         quant: i32,
         valor: f64,
@@ -36,6 +40,7 @@ impl Divida {
     ) -> Self {
         let mut divida = Divida {
             id: String::new(),
+            prioritaria: prioritaria,
             nome,
             cobranca_automatica,
             parcelas: Vec::new(),
