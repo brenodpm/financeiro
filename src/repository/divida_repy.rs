@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 use itertools::Itertools;
 
 use crate::dto::{DadosDivida, Divida};
@@ -16,18 +18,28 @@ impl Divida {
         }
         let resp: Vec<Divida> = serde_json::from_str(&json).unwrap();
 
-        resp.into_iter()
+        let sorted: Vec<Divida> = resp
+            .into_iter()
             .sorted_by(|a, b| {
-                if a.prioritaria != b.prioritaria && b.prox_parcela().data_vencimento <= corte {
-                    b.prioritaria.partial_cmp(&a.prioritaria).unwrap()
-                } else {
-                    a.prox_parcela()
-                        .data_vencimento
-                        .partial_cmp(&b.prox_parcela().data_vencimento)
-                        .unwrap()
+                let a_p = a.prox_parcela();
+                let b_p = b.prox_parcela();
+
+                let a_urgente = a.prioritaria && a_p.data_vencimento <= corte;
+                let b_urgente = b.prioritaria && b_p.data_vencimento <= corte;
+
+                if a_urgente != b_urgente {
+                    return if a_urgente {
+                        Ordering::Less
+                    } else {
+                        Ordering::Greater
+                    };
                 }
+
+                a_p.data_vencimento.cmp(&b_p.data_vencimento)
             })
-            .collect::<Vec<Divida>>()
+            .collect();
+
+        sorted
     }
 
     pub fn salvar(&self) {
@@ -45,12 +57,16 @@ impl Divida {
     pub fn atualizar() {
         let corte = chrono::Local::now().naive_local().date() - chrono::Duration::days(30);
 
-        let mut lista = Divida::listar()
-            .into_iter()
-            .filter(|d| {
-                d.parcelas.aberta().len() > 0 || d.parcelas.ultima().data_vencimento >= corte
-            })
-            .collect::<Vec<Divida>>();
+        let mut lista: Vec<Divida> = Vec::new();
+        Divida::listar().into_iter().for_each(|divida| {
+            if divida
+                .parcelas
+                .iter()
+                .any(|p| !p.pago || p.data_vencimento >= corte)
+            {
+                lista.push(divida);
+            }
+        });
 
         for divida in lista.iter_mut() {
             if divida.cobranca_automatica {
