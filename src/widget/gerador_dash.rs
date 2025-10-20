@@ -1,21 +1,25 @@
+use std::env;
+
 use chrono::{Local, Months};
-use color_eyre::eyre::Result;
+use color_eyre::Result;
 use ratatui::{
     buffer::Buffer,
-    crossterm::event::{self, Event, KeyEvent, KeyEventKind},
+    crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind},
     layout::{Constraint, Layout, Rect},
-    widgets::Widget,
+    style::Stylize,
+    symbols,
+    text::Line,
+    widgets::{
+        Block, Borders, HighlightSpacing, List, ListItem, ListState, StatefulWidget, Widget,
+    },
     DefaultTerminal,
 };
 
-use crate::{
-    componentes::check_wgt::Check,
-    dto::{Configuracao, DadosDivida, Divida, DividaMes, ParcelaDivida},
-    estilo::{principal_comandos, principal_titulo},
-    repository::atualizar_base,
-};
+use crate::{dto::{Configuracao, DadosDivida, Divida, DividaMes, ParcelaDivida}, estilo::{
+    alternate_colors, principal_comandos, principal_titulo, GERAL_BG, GERAL_TEXT_FG,
+    LISTA_BORDA_ESTILO, LISTA_SELECIONADO_ESTILO,
+}, repository::atualizar_base, widget::alerta_wgt::Alerta};
 
-#[derive(PartialEq)]
 enum Etapa {
     Iniciando,
     Base,
@@ -25,15 +29,13 @@ enum Etapa {
 }
 
 pub struct GeradorDash {
-    etapa: Etapa,
-    descricao: String,
+    pub items: Vec<Etapa>,
+    pub state: ListState,
+    pub sair: bool,
+
 
     config: Configuracao,
     lista_dividas: Vec<ParcelaDivida>,
-
-    base: Check,
-    dividas: Check,
-    fim: Check,
 }
 
 impl Widget for &mut GeradorDash {
@@ -45,9 +47,8 @@ impl Widget for &mut GeradorDash {
         ])
         .areas(area);
 
-        principal_titulo("Gerador de Dashboard", titulo, buf);
-        principal_comandos(vec![self.descricao.as_str()], rodape, buf);
-
+        principal_titulo("Gerador de Dash", titulo, buf);
+        principal_comandos(vec!["Aguarde..."], rodape, buf);
         self.render_list(corpo, buf);
     }
 }
@@ -55,12 +56,15 @@ impl Widget for &mut GeradorDash {
 impl GeradorDash {
     pub fn new() -> Self {
         Self {
-            etapa: Etapa::Iniciando,
-            base: Check::new("Base dos gráficos", false),
-            dividas: Check::new("Dividas", false),
-            fim: Check::new("Encerrar", false),
-
-            descricao: "Iniciando...".to_string(),
+            items: vec![
+                Etapa::Iniciando,
+                Etapa::Base,
+                Etapa::Dividas,
+                Etapa::Finalizado,
+                Etapa::Sair,
+            ],
+            state: Default::default(),
+            sair: false,
 
             config: Configuracao::buscar(),
             lista_dividas: Vec::new(),
@@ -68,47 +72,84 @@ impl GeradorDash {
     }
 
     pub fn run(mut self, terminal: &mut DefaultTerminal) -> Result<()> {
-        while self.etapa != Etapa::Sair {
-            if self.etapa == Etapa::Finalizado {
-                if let Event::Key(key) = event::read()? {
-                    self.handle_key(key);
-                };
-            }
-            self.executar_etapa();
+        self.state.select_first();
+
+        while !self.sair {
+            self.executar_etapa(terminal);
 
             terminal.draw(|frame| frame.render_widget(&mut self, frame.area()))?;
         }
+
         Ok(())
     }
 
-    fn handle_key(&mut self, key: KeyEvent) {
-        if key.kind == KeyEventKind::Press {
-            self.etapa = Etapa::Sair
+    fn executar_etapa(&mut self,  terminal: &mut DefaultTerminal) {
+        if let Some(i) = self.state.selected() {
+            match self.items[i] {
+                Etapa::Iniciando => {
+                    self.inicializar();
+                    self.state.select_next();
+                }
+                Etapa::Base => {
+                    self.atualizar_base();
+                    self.state.select_next();
+                }
+                Etapa::Dividas => {
+                    self.calcular_dividas();
+                    self.state.select_next();
+                }
+                Etapa::Finalizado => {
+                    Alerta::atencao(vec!["Dashbard concluído".to_string()]).run(terminal);
+                    self.state.select_next();
+                }
+                Etapa::Sair => {
+                    self.sair = true;
+                }
+            }
         }
     }
 
     fn render_list(&mut self, area: Rect, buf: &mut Buffer) {
-        let [base, divida, fim] = Layout::vertical([
-            Constraint::Length(3),
-            Constraint::Length(3),
-            Constraint::Length(3),
-        ])
-        .areas(area);
+        let block = Block::new()
+            .title(Line::raw("Gerar dash").centered())
+            .borders(Borders::TOP)
+            .border_set(symbols::border::EMPTY)
+            .border_style(LISTA_BORDA_ESTILO)
+            .bg(GERAL_BG);
 
-        self.base.render(self.etapa == Etapa::Base, base, buf);
-        self.dividas
-            .render(self.etapa == Etapa::Dividas, divida, buf);
-        self.fim.render(self.etapa == Etapa::Finalizado, fim, buf);
+        // Iterate through all elements in the `items` and stylize them.
+        let items: Vec<ListItem> = self
+            .items
+            .iter()
+            .enumerate()
+            .map(|(i, value)| {
+                ListItem::new(Line::styled(
+                    match value {
+                        Etapa::Iniciando => "Iniciando",
+                        Etapa::Base => "Base dos gráficos",
+                        Etapa::Dividas => "Dívidas",
+                        Etapa::Finalizado => "Finalizado",
+                        Etapa::Sair => "Sair",
+                    },
+                    GERAL_TEXT_FG,
+                ))
+                .bg(alternate_colors(i))
+            })
+            .collect();
+
+        // Create a List from all list items and highlight the currently selected one
+        let list = List::new(items)
+            .block(block)
+            .highlight_style(LISTA_SELECIONADO_ESTILO)
+            .highlight_symbol("▶ ")
+            .highlight_spacing(HighlightSpacing::Always);
+
+        // We need to disambiguate this trait method as both `Widget` and `StatefulWidget` share the
+        // same method name `render`.
+        StatefulWidget::render(list, area, buf, &mut self.state);
     }
 
-    fn executar_etapa(&mut self) {
-        match self.etapa {
-            Etapa::Iniciando => self.inicializar(),
-            Etapa::Base => self.atualizar_base(),
-            Etapa::Dividas => self.calcular_dividas(),
-            Etapa::Finalizado | Etapa::Sair => {}
-        }
-    }
+
 
     /******************************************************************************************************************
      *                                         PROCESSAMENTOS
@@ -119,17 +160,10 @@ impl GeradorDash {
             .iter()
             .flat_map(|d| d.parcelas.clone())
             .collect();
-
-        self.descricao = "Atualizando base dos gráficos".to_string();
-        self.etapa = Etapa::Base;
     }
 
     fn atualizar_base(&mut self) {
         atualizar_base();
-        self.base.set_checked(true);
-
-        self.descricao = "Calculando dívidas".to_string();
-        self.etapa = Etapa::Dividas;
     }
 
     fn calcular_dividas(&mut self) {
@@ -162,8 +196,5 @@ impl GeradorDash {
         }
 
         DividaMes::salvar(meses);
-
-        self.descricao = "Pressione qualquer tecla para sair".to_string();
-        self.etapa = Etapa::Finalizado;
     }
 }
