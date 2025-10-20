@@ -1,0 +1,193 @@
+:root {
+  --bg: #071021;
+  --muted: #94a3b8;
+  --accent: #60a5fa;
+  --panel: #0b1220;
+  --radius: 10px;
+  --gap: 14px;
+  --chart-height: 350px; /* altura fixa dos charts */
+  color-scheme: dark;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0
+}
+
+html,
+body {
+  height: 100%
+}
+
+body {
+  background: linear-gradient(180deg, #041021 0%, #071427 100%);
+  color: #e6eef6;
+  height: 100vh;
+  overflow: auto; /* permitir rolagem vertical quando conteúdo exceder a tela */
+}
+
+/* header */
+.top {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.top h1 {
+  font-size: 1rem;
+  font-weight: 600
+}
+
+/* layout */
+.app {
+  display: flex;
+  min-height: calc(100vh - 56px); /* usar min-height para permitir que cresça além da viewport */
+  gap: var(--gap);
+  padding: 12px;
+}
+
+/* sidebar */
+.sidebar {
+  width: 220px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent);
+  border-radius: 10px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+}
+
+.brand {
+  font-weight: 700;
+  color: #c7d2fe;
+  margin-bottom: 6px
+}
+
+.sidebar nav ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px
+}
+
+.sidebar nav li {
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer
+}
+
+.sidebar nav li.active {
+  background: rgba(96, 165, 250, 0.12);
+  color: var(--accent);
+  font-weight: 600
+}
+
+/* workspace */
+.workspace {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  min-width: 0;
+}
+
+/* cards */
+.cards {
+  display: flex;
+  gap: var(--gap);
+  align-items: stretch;
+}
+
+.cards span {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin: 6px;
+  margin-top: 40px;
+  padding: 0px;
+  -webkit-transform: rotate(270deg);
+  transform: rotate(270deg);
+  height: 7px;
+  width: 20px;
+}
+
+.card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), transparent);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  padding: 12px 14px;
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(2, 6, 23, 0.6);
+  min-width: 160px;
+  flex: 0 1 240px;
+}
+
+.card-title {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-bottom: 6px
+}
+
+.card-value {
+  font-weight: 700;
+  color: var(--accent);
+  font-size: 1.05rem
+}
+
+/* grid de charts full-screen */
+.charts-grid {
+  /* mudou de grid para flex para permitir larguras individuais por elemento */
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap);
+  align-items: flex-start;
+  align-content: flex-start; /* força as linhas a ficarem juntas no topo, sem espaçamento extra */
+  flex: 1;
+  min-height: 0;
+}
+
+
+
+/* painel de chart */
+.chart {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), transparent);
+  border-radius: 10px;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  box-shadow: 0 8px 30px rgba(2, 6, 23, 0.6);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+
+  /* trava altura para o valor da variável */
+  height: var(--chart-height);
+  min-height: var(--chart-height);
+  max-height: var(--chart-height);
+  overflow: hidden;
+
+  /* largura dinâmica */
+  flex: 0 0 auto;
+  width: var(--chart-width, calc(50% - (var(--gap) * 0.5)));
+  align-self: flex-start; /* evita que o flex container estique verticalmente */
+}
+
+/* containers que amCharts preencherá */
+#chartMultiLine,
+#chartColumn,
+#chartArea,
+#chartPie {
+  width: 100%;
+  height: 100%; /* preenche o painel .chart com altura fixa */
+}
+
+/* responsivo */
+@media (max-width:980px) {
+  .charts-grid {
+    /* mantém wrap; cada chart por padrão ocupa 100% no mobile */
+  }
+
+  .chart {
+    width: var(--chart-width, 100%);
+  }
+}

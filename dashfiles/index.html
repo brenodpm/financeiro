@@ -1,31 +1,73 @@
-<!DOCTYPE html>
-<html lang="pt-br">
+<!doctype html>
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Dashboard Finanças Pessoais - Mais Gráficos</title>
 
-    <script src="script/amchart/Animated.js"></script>
-    <script src="script/amchart/Dark.js"></script>
-    <script src="script/amchart/index.js"></script>
-    <script src="script/amchart/xy.js"></script>
-    <script src="script/index.js"></script>
+  <!-- amCharts 4 CDN -->
+  <script src="https://www.amcharts.com/lib/4/core.js"></script>
+  <script src="https://www.amcharts.com/lib/4/charts.js"></script>
+  <script src="https://www.amcharts.com/lib/4/themes/animated.js"></script>
 
-    <script src="data/dividas.js"></script>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <header class="top">
+    <h1>Finanças Pessoais</h1>
+  </header>
 
-<div id="resultado"/>
-    <header class="header">
-        Dashboard - Financeiro
-    </header>
-    <main class="main">
-        <section class="chart-area">
-            <div class="chart-box">
-                <div id="dividas" class="_8x4"/>
-            </div>
-        </section>
-    </main>
+  <main class="app">
+    <section class="workspace">
+      <section class="cards">
+        <span>MÉDIA</span>
+        <div class="card">
+          <div class="card-title">Entradas</div>
+          <div class="card-value">R$ 8.450,00</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Saídas</div>
+          <div class="card-value">R$ 5.200,00</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Custo de vida</div>
+          <div class="card-value">R$ 3.150,00</div>
+        </div>
+        <span>ATUAL</span>
+        <div class="card">
+          <div class="card-title">Entradas</div>
+          <div class="card-value">R$ 3.150,00</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Saídas</div>
+          <div class="card-value">R$ 3.150,00</div>
+        </div>
+      </section>
+
+      <section class="charts-grid">
+        <div id="gastoPorConta" class="chart" style="width:29%" aria-label="Gasto por conta"></div>
+        <div id="dividas" class="chart" style="width:69%" aria-label="Gráfico de dívidas"></div>
+
+        <div id="chartMultiLine" class="chart" style="width:380px" aria-label="Gráfico múltiplas linhas"></div>
+        <div id="chartColumn" class="chart" style="width:380px" aria-label="Gráfico de colunas empilhadas"></div>
+        <div id="chartArea" class="chart" style="width:380px" aria-label="Gráfico de área acumulada"></div>
+        <div id="chartArea" class="chart" style="width:380px" aria-label="Gráfico de área acumulada"></div>
+        <div id="chartPie" class="chart" style="width:380px" aria-label="Gráfico de pizza"></div>
+      </section>
+    </section>
+  </main>
+
+  <!-- gráficos oficiais -->
+  <script src="gasto-por-conta.js"></script>
+  <script src="dividas.js"></script>
+
+  <!-- dados -->
+    <script src="data/dividas.js"></script>
+
+  <!-- gráficos de exemplos -->
+  <script src="chart-multiline.js"></script>
+  <script src="chart-column.js"></script>
+  <script src="chart-area.js"></script>
+  <script src="chart-pie.js"></script>
 </body>
 </html>
