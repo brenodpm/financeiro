@@ -30,6 +30,8 @@ impl Default for Configuracao {
         Self {
             salario: Default::default(),
             endividamento_max: Default::default(),
+            contracheque_entradas: Default::default(),
+            contracheque_saidas: Default::default(),
         }
     }
 }

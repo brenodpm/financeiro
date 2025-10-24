@@ -1,12 +1,13 @@
 use color_eyre::eyre::Result;
 use ratatui::DefaultTerminal;
 
-use crate::widget::{Categorizador, EditarConfiguracoes, GeradorDash, ListaCategoria, ListaDividas, ListaMeta, Menu};
+use crate::widget::{Categorizador, ContraCheque, EditarConfiguracoes, GeradorDash, ListaCategoria, ListaDividas, ListaMeta, Menu};
 
 #[derive(Clone)]
 pub enum Etapa {
     Categorizar,
     Dividas,
+    ContraCheque,
     Metas,
     Menu,
     Dash,
@@ -33,6 +34,7 @@ impl App {
             items: vec![
                 ("Categorizar".to_string(), Etapa::Categorizar),
                 ("Dívidas".to_string(), Etapa::Dividas),
+                ("Contra-cheques".to_string(), Etapa::ContraCheque),
                 ("Metas".to_string(), Etapa::Metas),
                 ("Gerar Gráfico".to_string(), Etapa::Dash),
                 ("Configurações".to_string(), Etapa::Configuracoes),
@@ -53,6 +55,7 @@ impl App {
                 Etapa::Dash => self.dash(&mut terminal),
                 Etapa::Configuracoes => self.configuracoes(&mut terminal),
                 Etapa::Categorias => self.categorias(&mut terminal),
+                Etapa::ContraCheque => self.contracheque(&mut terminal),
                 
                 Etapa::Sair => break,
             }
@@ -75,6 +78,16 @@ impl App {
             Ok(_) => {}
             Err(e) => {
                 log::info!("Falha ao categorizar: {e}");
+            }
+        }
+        self.etapa = Etapa::Menu
+    }
+
+    fn contracheque(&mut self, terminal: &mut DefaultTerminal) {
+        match ContraCheque::default().run(terminal) {
+            Ok(_) => {}
+            Err(e) => {
+                log::info!("Falha ao informar contra-cheque: {e}");
             }
         }
         self.etapa = Etapa::Menu
