@@ -1,15 +1,12 @@
+use chrono::Utc;
 use ratatui::{
     buffer::Buffer,
     crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind},
     layout::{Constraint, Direction, Layout, Rect},
-    style::{
-        palette::tailwind::{BLUE, SLATE},
-        Stylize,
-    },
-    widgets::{ListState, Paragraph, Widget},
+    style::Stylize,
+    widgets::{Paragraph, Widget},
     DefaultTerminal,
 };
-use sha1::digest::crypto_common::KeyInit;
 
 use crate::{
     componentes::input_wgt::Input,
@@ -44,6 +41,8 @@ struct ContraChequeItem {
 pub struct ContraCheque {
     sair: bool,
     posicao: Posicao,
+    empresa: Input,
+    data_pagamento: Input,
     entradas: Vec<ContraChequeItem>,
     saidas: Vec<ContraChequeItem>,
 }
@@ -52,11 +51,11 @@ impl Default for ContraCheque {
     fn default() -> Self {
         let config = Configuracao::buscar();
 
-        let mut entradas: Vec<ContraChequeItem> = config
+        let entradas: Vec<ContraChequeItem> = config
             .contracheque_entradas
             .iter()
             .enumerate()
-            .map(|(i, nome_item)| ContraChequeItem {
+            .map(|(_, nome_item)| ContraChequeItem {
                 nome: Input::new_texto("nome", nome_item.clone()),
                 valor: Input::new_monetario("valor", 0.0),
             })
@@ -66,7 +65,7 @@ impl Default for ContraCheque {
             .contracheque_saidas
             .iter()
             .enumerate()
-            .map(|(i, nome_item)| ContraChequeItem {
+            .map(|(_, nome_item)| ContraChequeItem {
                 nome: Input::new_texto("nome", nome_item.clone()),
                 valor: Input::new_monetario("valor", 0.0),
             })
@@ -74,6 +73,11 @@ impl Default for ContraCheque {
 
         Self {
             sair: Default::default(),
+            empresa: Input::new_texto("Empresa", config.contracheque_empresa),
+            data_pagamento: Input::new_data(
+                "Empresa",
+                Utc::now().naive_utc().date().format("%d/%m/%y").to_string(),
+            ),
             posicao: Posicao {
                 bloco: Bloco::Entrada,
                 ponto: Ponto::Nome,
@@ -101,7 +105,6 @@ impl Widget for &mut ContraCheque {
                 "Enter (alterar pago)",
                 "ESC Sair",
                 "F5 (salvar)",
-                self.posicao.linha.to_string().as_str(),
             ],
             rodape,
             buf,
@@ -145,7 +148,7 @@ impl ContraCheque {
     fn remover_item(&mut self) {
         match self.posicao.bloco {
             Bloco::Entrada => self.entradas.remove(self.posicao.linha),
-            Bloco::Saida =>  self.saidas.remove(self.posicao.linha),
+            Bloco::Saida => self.saidas.remove(self.posicao.linha),
         };
         self.obedecer_o_ultimo();
     }
@@ -245,8 +248,22 @@ impl ContraCheque {
     }
 
     fn render(&mut self, area: Rect, buf: &mut Buffer) {
-        let [valores, resumo] =
-            Layout::vertical([Constraint::Fill(4), Constraint::Fill(1)]).areas(area);
+        let [cabecalho, valores, resumo] = Layout::vertical([
+            Constraint::Length(3),
+            Constraint::Fill(1),
+            Constraint::Length(6),
+        ])
+        .areas(area);
+
+        let [empresa, data, _] = Layout::horizontal([
+            Constraint::Fill(2),
+            Constraint::Length(15),
+            Constraint::Fill(3),
+        ])
+        .areas(cabecalho);
+
+        self.empresa.render(false, empresa, buf);
+        self.data_pagamento.render(false, data, buf);
 
         let [entradas, _separador, saidas] = Layout::horizontal([
             Constraint::Fill(1),
@@ -317,7 +334,33 @@ impl ContraCheque {
         posicao.linha == linha && posicao.ponto == ponto && posicao.bloco == bloco
     }
 
-    fn render_resumo(&mut self, area: Rect, buf: &mut Buffer) {}
+    fn render_resumo(&mut self, area: Rect, buf: &mut Buffer) {
+        let [_, resumo] =
+            Layout::horizontal([Constraint::Fill(1), Constraint::Length(30)]).areas(area);
+
+        let [entradas_rect, saidas_rect, total_rect] = Layout::vertical([
+            Constraint::Length(2),
+            Constraint::Length(2),
+            Constraint::Length(2),
+        ])
+        .areas(resumo);
+
+        let entradas: f64 = self.entradas.iter().map(|c| c.valor.to_f64()).sum();
+        let saidas: f64 = self.saidas.iter().map(|c| c.valor.to_f64()).sum();
+        let total = entradas - saidas;
+
+        Paragraph::new(format!("Entradas:      R$ {:0.02}", entradas))
+            .bold()
+            .render(entradas_rect, buf);
+
+        Paragraph::new(format!("Saídas:        R$ {:0.02}", saidas))
+            .bold()
+            .render(saidas_rect, buf);
+
+        Paragraph::new(format!("Total:         R$ {:0.02}", total))
+            .bold()
+            .render(total_rect, buf);
+    }
 
     fn build_constraints_for_rows_in_area(item_count: usize) -> Vec<Constraint> {
         let mut constraints = Vec::with_capacity(item_count + 1);

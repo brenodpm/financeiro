@@ -32,6 +32,8 @@ impl Default for Configuracao {
             endividamento_max: Default::default(),
             contracheque_entradas: Default::default(),
             contracheque_saidas: Default::default(),
+            contracheque: true,
+            contracheque_empresa: String::new(),
         }
     }
 }
