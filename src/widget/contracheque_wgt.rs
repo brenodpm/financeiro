@@ -16,22 +16,44 @@ use crate::{
 use color_eyre::Result;
 
 #[derive(Clone, PartialEq)]
+struct Tupla {
+    linha: usize,
+    coluna: usize,
+}
+
+#[derive(Clone, PartialEq)]
+enum Editar {
+    Empresa,
+    Data,
+    Tupla(Tupla),
+}
+
 enum Bloco {
     Entrada,
     Saida,
 }
-
-#[derive(Clone, PartialEq)]
-enum Ponto {
+enum Tipo {
     Nome,
     Valor,
 }
 
-#[derive(Clone)]
-struct Posicao {
-    bloco: Bloco,
-    ponto: Ponto,
-    linha: usize,
+impl Editar {
+    fn foco(&self, linha: usize, bloco: &Bloco, tipo: Tipo) -> bool {
+        if let Editar::Tupla(tupla) = self {
+            tupla.eq(&Tupla {
+                linha,
+                coluna: match bloco {
+                    Bloco::Entrada => 0,
+                    Bloco::Saida => 2,
+                } + match tipo {
+                    Tipo::Nome => 0,
+                    Tipo::Valor => 1,
+                },
+            })
+        } else {
+            false
+        }
+    }
 }
 
 struct ContraChequeItem {
@@ -40,7 +62,7 @@ struct ContraChequeItem {
 }
 pub struct ContraCheque {
     sair: bool,
-    posicao: Posicao,
+    editar: Editar,
     empresa: Input,
     data_pagamento: Input,
     entradas: Vec<ContraChequeItem>,
@@ -78,11 +100,7 @@ impl Default for ContraCheque {
                 "Empresa",
                 Utc::now().naive_utc().date().format("%d/%m/%y").to_string(),
             ),
-            posicao: Posicao {
-                bloco: Bloco::Entrada,
-                ponto: Ponto::Nome,
-                linha: 0,
-            },
+            editar: Editar::Empresa,
             entradas: entradas,
             saidas: saidas,
         }
@@ -101,8 +119,7 @@ impl Widget for &mut ContraCheque {
         principal_titulo("Adicionar Contra-cheque", titulo, buf);
         principal_comandos(
             vec![
-                "↓↑ (mover)",
-                "Enter (alterar pago)",
+                "Tab e ↓↑ (mover)",
                 "ESC Sair",
                 "F5 (salvar)",
             ],
@@ -135,8 +152,41 @@ impl ContraCheque {
         match key.code {
             //KeyCode::F(5) => self.salvar(),
             KeyCode::Esc => self.sair = true,
-            KeyCode::BackTab => self.para_esquerda(),
+
+            _ => match &self.editar {
+                Editar::Empresa => self.handle_key_alt_empresa(key),
+                Editar::Data => self.handle_key_alt_data(key),
+                Editar::Tupla(_) => self.handle_key_alt_coluna(key),
+            },
+        }
+    }
+
+    fn handle_key_alt_empresa(&mut self, key: KeyEvent) {
+        match key.code {
+            KeyCode::Tab | KeyCode::Enter => self.editar = Editar::Data,
+
+            _ => self.empresa.handle_key(key),
+        }
+    }
+
+    fn handle_key_alt_data(&mut self, key: KeyEvent) {
+        match key.code {
+            KeyCode::BackTab => self.editar = Editar::Empresa,
+            KeyCode::Tab | KeyCode::Enter => {
+                self.editar = Editar::Tupla(Tupla {
+                    coluna: 0,
+                    linha: 0,
+                })
+            }
+
+            _ => self.data_pagamento.handle_key(key),
+        }
+    }
+
+    fn handle_key_alt_coluna(&mut self, key: KeyEvent) {
+        match key.code {
             KeyCode::Tab => self.para_direita(),
+            KeyCode::BackTab => self.para_esquerda(),
             KeyCode::Up => self.para_cima(),
             KeyCode::Down | KeyCode::Enter => self.para_baixo(),
             KeyCode::Delete => self.remover_item(),
@@ -146,74 +196,84 @@ impl ContraCheque {
     }
 
     fn remover_item(&mut self) {
-        match self.posicao.bloco {
-            Bloco::Entrada => self.entradas.remove(self.posicao.linha),
-            Bloco::Saida => self.saidas.remove(self.posicao.linha),
-        };
-        self.obedecer_o_ultimo();
+        if let Editar::Tupla(mut tupla) = self.editar.clone() {
+            if tupla.coluna < 2 {
+                self.entradas.remove(tupla.linha);
+            } else {
+                self.saidas.remove(tupla.linha);
+            }
+            self.obedecer_o_ultimo(&mut tupla);
+            self.editar = Editar::Tupla(tupla);
+        }
     }
 
     fn para_esquerda(&mut self) {
-        if self.posicao.ponto == Ponto::Valor {
-            self.posicao.ponto = Ponto::Nome;
-        } else if self.posicao.bloco == Bloco::Saida {
-            self.posicao.bloco = Bloco::Entrada;
-            self.posicao.ponto = Ponto::Valor;
+        if let Editar::Tupla(mut tupla) = self.editar.clone() {
+            if tupla.coluna > 0 {
+                tupla.coluna -= 1;
+            } else {
+                tupla.coluna = 3;
+            }
+
+            self.obedecer_o_ultimo(&mut tupla);
+            self.editar = Editar::Tupla(tupla);
         }
-        self.obedecer_o_ultimo();
     }
 
     fn para_direita(&mut self) {
-        if self.posicao.ponto == Ponto::Nome {
-            self.posicao.ponto = Ponto::Valor;
-        } else if self.posicao.bloco == Bloco::Entrada {
-            self.posicao.bloco = Bloco::Saida;
-            self.posicao.ponto = Ponto::Nome;
-        }
-        self.obedecer_o_ultimo();
-    }
+        if let Editar::Tupla(mut tupla) = self.editar.clone() {
+            if tupla.coluna < 3 {
+                tupla.coluna += 1;
+            } else {
+                tupla.coluna = 0;
+            }
 
-    fn obedecer_o_ultimo(&mut self) {
-        while self.posicao.linha > 0
-            && self.posicao.linha
-                > (match self.posicao.bloco {
-                    Bloco::Entrada => self.entradas.len(),
-                    Bloco::Saida => self.saidas.len(),
-                } - 1)
-        {
-            self.posicao.linha -= 1;
+            self.obedecer_o_ultimo(&mut tupla);
+            self.editar = Editar::Tupla(tupla);
         }
     }
 
     fn para_cima(&mut self) {
-        if self.posicao.linha > 0 {
-            self.posicao.linha -= 1;
+        if let Editar::Tupla(mut tupla) = self.editar.clone() {
+            if tupla.linha > 0 {
+                tupla.linha -= 1;
+                self.obedecer_o_ultimo(&mut tupla);
+                self.editar = Editar::Tupla(tupla);
+            } else {
+                self.editar = Editar::Data;
+            }
         }
     }
 
     fn para_baixo(&mut self) {
-        if self.posicao.linha
-            < (match self.posicao.bloco {
-                Bloco::Entrada => self.entradas.len(),
-                Bloco::Saida => self.saidas.len(),
-            } - 1)
-        {
-            self.posicao.linha += 1;
+        if let Editar::Tupla(mut tupla) = self.editar.clone() {
+            tupla.linha += 1;
+            self.obedecer_o_ultimo(&mut tupla);
+            self.editar = Editar::Tupla(tupla);
+        }
+    }
+
+    fn obedecer_o_ultimo(&mut self, tupla: &mut Tupla) {
+        if tupla.coluna < 2 {
+            while tupla.linha > self.entradas.len() {
+                tupla.linha -= 1;
+            }
         } else {
-            self.posicao.linha = 0;
+            while tupla.linha > self.saidas.len() {
+                tupla.linha -= 1;
+            }
         }
     }
 
     fn alter_input(&mut self, key: KeyEvent) {
-        match self.posicao.bloco {
-            Bloco::Entrada => match self.posicao.ponto {
-                Ponto::Nome => self.entradas[self.posicao.linha].nome.handle_key(key),
-                Ponto::Valor => self.entradas[self.posicao.linha].valor.handle_key(key),
-            },
-            Bloco::Saida => match self.posicao.ponto {
-                Ponto::Nome => self.saidas[self.posicao.linha].nome.handle_key(key),
-                Ponto::Valor => self.saidas[self.posicao.linha].valor.handle_key(key),
-            },
+        if let Editar::Tupla(tupla) = self.editar.clone() {
+            match tupla.coluna {
+                0 => self.entradas[tupla.linha].nome.handle_key(key),
+                1 => self.entradas[tupla.linha].valor.handle_key(key),
+                2 => self.saidas[tupla.linha].nome.handle_key(key),
+                3 => self.saidas[tupla.linha].valor.handle_key(key),
+                _ => {}
+            }
         }
     }
 
@@ -262,8 +322,8 @@ impl ContraCheque {
         ])
         .areas(cabecalho);
 
-        self.empresa.render(false, empresa, buf);
-        self.data_pagamento.render(false, data, buf);
+        self.empresa.render(self.editar == Editar::Empresa, empresa, buf);
+        self.data_pagamento.render(self.editar == Editar::Data, data, buf);
 
         let [entradas, _separador, saidas] = Layout::horizontal([
             Constraint::Fill(1),
@@ -278,7 +338,7 @@ impl ContraCheque {
             entradas,
             buf,
             Bloco::Entrada,
-            self.posicao.clone(),
+            self.editar.clone(),
         );
         Self::render_itens(
             &mut self.saidas,
@@ -286,7 +346,7 @@ impl ContraCheque {
             saidas,
             buf,
             Bloco::Saida,
-            self.posicao.clone(),
+            self.editar.clone(),
         );
         self.render_resumo(resumo, buf);
     }
@@ -297,7 +357,7 @@ impl ContraCheque {
         area: Rect,
         buf: &mut Buffer,
         bloco: Bloco,
-        posicao: Posicao,
+        editar: Editar,
     ) {
         let constraints = Self::build_constraints_for_rows_in_area(itens.iter_mut().count());
         let chunks = Layout::default()
@@ -316,22 +376,11 @@ impl ContraCheque {
             if let Some(rect) = chunks.get(i + 1) {
                 let [nome, valor] =
                     Layout::horizontal([Constraint::Fill(3), Constraint::Fill(1)]).areas(*rect);
-                item.nome.render(
-                    Self::foco(posicao.clone(), i, bloco.clone(), Ponto::Nome),
-                    nome,
-                    buf,
-                );
-                item.valor.render(
-                    Self::foco(posicao.clone(), i, bloco.clone(), Ponto::Valor),
-                    valor,
-                    buf,
+                item.nome.render(editar.foco(i, &bloco, Tipo::Nome), nome, buf);
+                item.valor.render(editar.foco(i, &bloco, Tipo::Valor),valor,buf,
                 );
             }
         }
-    }
-
-    fn foco(posicao: Posicao, linha: usize, bloco: Bloco, ponto: Ponto) -> bool {
-        posicao.linha == linha && posicao.ponto == ponto && posicao.bloco == bloco
     }
 
     fn render_resumo(&mut self, area: Rect, buf: &mut Buffer) {
