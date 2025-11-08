@@ -1,6 +1,5 @@
 use std::collections::HashSet;
 
-
 use crate::dto::Banco;
 
 use super::file_repy::{arq_escrever, arq_ler};
@@ -17,12 +16,20 @@ impl Banco {
         serde_json::from_str(&json).unwrap()
     }
 
-    pub fn salvar(novos: Vec<Banco>) {
+    pub fn buscar_id(id: String) -> Option<Banco> {
+        Self::listar().iter().find(|b| b.id.eq(&id)).cloned()
+    }
+
+    pub fn salvar_lista(novos: Vec<Banco>) {
         let mut bancos: Vec<Banco> = Banco::listar();
 
         merge_bancos(&mut bancos, novos);
 
         arq_escrever(FIN, BANC, serde_json::to_string(&bancos).unwrap());
+    }
+
+    pub fn salvar(banco: Banco) {
+        Self::salvar_lista(vec![banco]);
     }
 }
 

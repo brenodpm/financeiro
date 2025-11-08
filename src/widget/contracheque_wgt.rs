@@ -9,9 +9,11 @@ use ratatui::{
 };
 
 use crate::{
+    app::Etapa,
     componentes::input_wgt::Input,
-    dto::Configuracao,
+    dto::{Banco, Configuracao, Conta, Lancamento, OptionalLazy},
     estilo::{principal_comandos, principal_titulo},
+    widget::alerta_wgt::Alerta,
 };
 use color_eyre::Result;
 
@@ -118,11 +120,7 @@ impl Widget for &mut ContraCheque {
 
         principal_titulo("Adicionar Contra-cheque", titulo, buf);
         principal_comandos(
-            vec![
-                "Tab e ↓↑ (mover)",
-                "ESC Sair",
-                "F5 (salvar)",
-            ],
+            vec!["Tab e ↓↑ (mover)", "ESC Sair", "F5 (salvar)"],
             rodape,
             buf,
         );
@@ -131,33 +129,108 @@ impl Widget for &mut ContraCheque {
 }
 
 impl ContraCheque {
-    pub fn run(mut self, terminal: &mut DefaultTerminal) -> Result<()> {
+    pub fn run(mut self, terminal: &mut DefaultTerminal) -> Result<Etapa> {
         while !self.sair {
             self.atualizar_listas();
 
             terminal.draw(|frame| frame.render_widget(&mut self, frame.area()))?;
             if let Event::Key(key) = event::read()? {
-                self.handle_key(key);
+                self.handle_key(key, terminal);
             };
         }
 
-        Ok(())
+        Ok(Etapa::Categorizar)
     }
 
-    pub fn handle_key(&mut self, key: KeyEvent) {
+    pub fn handle_key(&mut self, key: KeyEvent, terminal: &mut DefaultTerminal) {
         if key.kind != KeyEventKind::Press {
             return;
         }
 
         match key.code {
-            //KeyCode::F(5) => self.salvar(),
-            KeyCode::Esc => self.sair = true,
+            KeyCode::F(5) => self.confirmar_concusao(terminal),
+            KeyCode::Esc => self.sair(terminal),
 
             _ => match &self.editar {
                 Editar::Empresa => self.handle_key_alt_empresa(key),
                 Editar::Data => self.handle_key_alt_data(key),
                 Editar::Tupla(_) => self.handle_key_alt_coluna(key),
             },
+        }
+    }
+
+    fn confirmar_concusao(&mut self, terminal: &mut DefaultTerminal) {
+        let entradas: f64 = self.entradas.iter().map(|c| c.valor.to_f64()).sum();
+        let saidas: f64 = self.saidas.iter().map(|c| c.valor.to_f64()).sum();
+        let total = entradas - saidas;
+
+        if let Ok(resp) = Alerta::atencao(vec![
+            "Certifique-se que todos os dados estão corretos".to_string(),
+            String::new(),
+            format!("Entradas:      R$ {:0.02}", entradas),
+            format!("Saídas:        R$ {:0.02}", saidas),
+            format!("Total:         R$ {:0.02}", total),
+        ])
+        .run(terminal)
+        {
+            if resp {
+                self.salvar(total);
+                self.sair = true;
+            }
+        }
+    }
+
+    fn salvar(&self, total: f64) {
+        let conta = buscar_conta(self.empresa.to_string());
+        let data = self.data_pagamento.to_naivedate().unwrap();
+        let mut lancamentos: Vec<Lancamento> = Vec::new();
+
+        self.entradas.iter().for_each(|f| {
+            lancamentos.push(Lancamento {
+                id: String::new(),
+                descricao: f.nome.to_string(),
+                valor: f.valor.to_f64(),
+                data: data,
+                categoria: OptionalLazy::None,
+                conta: Some(conta.id.clone()),
+                regra: OptionalLazy::None,
+            });
+        });
+
+        self.saidas.iter().for_each(|f| {
+            lancamentos.push(Lancamento {
+                id: String::new(),
+                descricao: f.nome.to_string(),
+                valor: f.valor.to_f64(),
+                data: data,
+                categoria: OptionalLazy::None,
+                conta: Some(conta.id.clone()),
+                regra: OptionalLazy::None,
+            });
+        });
+
+        lancamentos.push(Lancamento {
+            id: String::new(),
+            descricao: "Transferencia de Salário Liquido".to_string(),
+            valor: total,
+            data: data,
+            categoria: OptionalLazy::None,
+            conta: Some(conta.id.clone()),
+            regra: OptionalLazy::None,
+        });
+
+
+        Lancamento::categorizar(&lancamentos);        
+    }
+
+    fn sair(&mut self, terminal: &mut DefaultTerminal) {
+        if let Ok(resp) = Alerta::atencao(vec![
+            "Tem certeza que deseja sair?".to_string(),
+            "todos os dados já preenchidos serão perdidos".to_string(),
+        ])
+        .run(terminal)
+        {
+            self.sair = resp;
         }
     }
 
@@ -322,8 +395,10 @@ impl ContraCheque {
         ])
         .areas(cabecalho);
 
-        self.empresa.render(self.editar == Editar::Empresa, empresa, buf);
-        self.data_pagamento.render(self.editar == Editar::Data, data, buf);
+        self.empresa
+            .render(self.editar == Editar::Empresa, empresa, buf);
+        self.data_pagamento
+            .render(self.editar == Editar::Data, data, buf);
 
         let [entradas, _separador, saidas] = Layout::horizontal([
             Constraint::Fill(1),
@@ -376,9 +451,10 @@ impl ContraCheque {
             if let Some(rect) = chunks.get(i + 1) {
                 let [nome, valor] =
                     Layout::horizontal([Constraint::Fill(3), Constraint::Fill(1)]).areas(*rect);
-                item.nome.render(editar.foco(i, &bloco, Tipo::Nome), nome, buf);
-                item.valor.render(editar.foco(i, &bloco, Tipo::Valor),valor,buf,
-                );
+                item.nome
+                    .render(editar.foco(i, &bloco, Tipo::Nome), nome, buf);
+                item.valor
+                    .render(editar.foco(i, &bloco, Tipo::Valor), valor, buf);
             }
         }
     }
@@ -421,5 +497,27 @@ impl ContraCheque {
         constraints.push(Constraint::Fill(1));
 
         constraints
+    }
+}
+
+fn buscar_conta(nome: String) -> Conta {
+    let mut banco = if let Some(atual) = Banco::buscar_id("Salario".to_string()) {
+        atual
+    } else {
+        let novo = Banco::novo("Salario".to_string());
+        Banco::salvar(novo.clone());
+        novo
+    };
+
+    if let Some(conta) = banco.contas.iter().find(|c| c.id == nome.clone()) {
+        conta.clone()
+    } else {
+        let conta = Conta {
+            id: nome.clone(),
+            nome: nome.clone(),
+        };
+        banco.contas.push(conta.clone());
+        Banco::salvar(banco);
+        conta
     }
 }
