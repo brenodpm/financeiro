@@ -24,7 +24,7 @@ impl Check {
     pub fn get_checked(&self) -> bool {
         self.valor
     }
-    pub fn set_checked(&mut self, valor: bool) {
+    pub fn _set_checked(&mut self, valor: bool) {
         self.valor = valor;
     }
 

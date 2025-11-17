@@ -23,12 +23,9 @@ impl DashGastoPorConta {
     }
 }
 
-impl DashDivida{
+impl DashDivida {
     pub fn salvar(dividas: Vec<DashDivida>) {
-        escrever(
-            "dividas",
-            serde_json::to_string_pretty(&dividas).unwrap(),
-        );
+        escrever("dividas", serde_json::to_string_pretty(&dividas).unwrap());
     }
 }
 
@@ -39,7 +36,11 @@ pub fn atualizar_base() {
 
 fn escrever(nome: &str, conteudo: String) {
     let valor = format!("var {} = {};", nome, conteudo);
-    arq_escrever(FIN, format!("data/{}.js", nome).as_str(), valor);
+    arq_escrever(
+        format!("{}/data", FIN).as_str(),
+        format!("{}.js", nome).as_str(),
+        valor,
+    );
 }
 
 fn transferir_diretorio(dir: &Dir, destino: &str) {

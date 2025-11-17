@@ -1,4 +1,3 @@
-use chrono::{Local, Months};
 use color_eyre::Result;
 use ratatui::{
     buffer::Buffer,
@@ -15,7 +14,7 @@ use ratatui::{
 use crate::{
     calc::{self, calcular_gasto_por_conta_d30, calcular_resumo},
     dto::{
-        Banco, Categoria, Configuracao, DadosDivida, DashDivida, DashGastoPorConta, DashResumo, Divida, DividaMes, Lancamento, OptionalLazy, OptionalLazyFn, ParcelaDivida, TipoFluxo
+        Categoria, Configuracao, DashDivida, DashGastoPorConta, DashResumo, Divida, Lancamento, OptionalLazy, ParcelaDivida
     },
     estilo::{
         GERAL_BG, GERAL_TEXT_FG, LISTA_BORDA_ESTILO, LISTA_SELECIONADO_ESTILO, alternate_colors, principal_comandos, principal_titulo
@@ -54,7 +53,6 @@ pub struct GeradorDash {
     sair: bool,
 
     config: Configuracao,
-    lista_contas: Vec<String>,
     lista_dividas: Vec<ParcelaDivida>,
     lista_lancamentos: Vec<Lancamento>,
 }
@@ -101,10 +99,6 @@ impl GeradorDash {
             sair: false,
 
             config: Configuracao::buscar(),
-            lista_contas: Banco::listar()
-                .iter()
-                .map(|b| b.contas.iter().map(|c| c.nome.clone()).collect())
-                .collect(),
             lista_dividas: Vec::new(),
             lista_lancamentos: lancamentos,
         }
@@ -148,7 +142,6 @@ impl GeradorDash {
             .border_style(LISTA_BORDA_ESTILO)
             .bg(GERAL_BG);
 
-        // Iterate through all elements in the `items` and stylize them.
         let items: Vec<ListItem> = self
             .items
             .iter()
@@ -159,15 +152,12 @@ impl GeradorDash {
             })
             .collect();
 
-        // Create a List from all list items and highlight the currently selected one
         let list = List::new(items)
             .block(block)
             .highlight_style(LISTA_SELECIONADO_ESTILO)
             .highlight_symbol("▶ ")
             .highlight_spacing(HighlightSpacing::Always);
 
-        // We need to disambiguate this trait method as both `Widget` and `StatefulWidget` share the
-        // same method name `render`.
         StatefulWidget::render(list, area, buf, &mut self.state);
     }
 

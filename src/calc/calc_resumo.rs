@@ -60,10 +60,10 @@ fn total_por(
         .map(|lancamentos| {
             lancamentos
                 .iter()
-                .filter(|l| match tipo {
+                .filter(|&l| match tipo {
                     TipoTotal::Entrada => l.valor > 0.0,
                     TipoTotal::Saida => l.valor < 0.0,
-                    TipoTotal::Custo => e_custo(l.clone().clone()),
+                    TipoTotal::Custo => e_custo(l.clone()),
                 })
                 .map(|l| l.valor)
                 .sum()

@@ -3,7 +3,6 @@ mod categoria_dto;
 mod configuracao_dto;
 mod conta_dto;
 mod divida_dto;
-mod divida_mes_dto;
 mod fluxo_regra_dto;
 mod grupo_despesa_dto;
 mod lancamento_dto;
@@ -32,7 +31,6 @@ pub use optional_lazy::{OptionalLazy, OptionalLazyFn};
 pub use parcela_divida_dto::ParcelaDivida;
 
 pub use divida_dto::DadosDivida;
-pub use divida_mes_dto::DividaMes;
 pub use nova_regra_dto::NovaRegra;
 pub use regra_dto::Regra;
 pub use tipo_despesa_dto::TipoDespesa;
