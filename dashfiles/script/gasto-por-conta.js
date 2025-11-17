@@ -1,117 +1,43 @@
-function renderGastoPorConta() {
-    var root = am5.Root.new("gasto-por-conta");
-    // Set themes
-    // https://www.amcharts.com/docs/v5/concepts/themes/
-    root.setThemes([
-        am5themes_Animated.new(root)
-    ]);
+// chart-pie.js
+// cria gráfico de pizza (distribuição despesas) usando amCharts 4
+(function () {
+  function ready(fn) {
+    if (document.readyState !== 'loading') return fn();
+    document.addEventListener('DOMContentLoaded', fn);
+  }
 
+  ready(function () {
+    if (!window.am4core || !window.am4charts) return;
 
-    // Create chart
-    // https://www.amcharts.com/docs/v5/charts/percent-charts/pie-chart/
-    var chart = root.container.children.push(
-        am5percent.PieChart.new(root, {
-            endAngle: 270,
-            layout: root.verticalLayout,
-            innerRadius: am5.percent(60)
-        })
-    );
-    /*
-    var bg = root.container.set("background", am5.Rectangle.new(root, {
-      fillPattern: am5.GrainPattern.new(root, {
-        density: 0.1,
-        maxOpacity: 0.2
-      })
-    }))
-    
-    */
+    am4core.useTheme(am4themes_animated);
 
-    // Create series
-    // https://www.amcharts.com/docs/v5/charts/percent-charts/pie-chart/#Series
-    var series = chart.series.push(
-        am5percent.PieSeries.new(root, {
-            valueField: "value",
-            categoryField: "category",
-            endAngle: 270
-        })
-    );
+    var chart = am4core.create("gastoPorConta", am4charts.PieChart);
+    chart.innerRadius = am4core.percent(45);
+    chart.responsive.enabled = true;
 
-    series.set("colors", am5.ColorSet.new(root, {
-        colors: [
-            am5.color(0x73556E),
-            am5.color(0x9FA1A6),
-            am5.color(0xF2AA6B),
-            am5.color(0xF28F6B),
-            am5.color(0xA95A52),
-            am5.color(0xE35B5D),
-            am5.color(0xFFA446)
-        ]
-    }))
+    var title = chart.titles.create();
+    title.text = "Gastos por Conta D30";
+    title.fontSize = 16;
+    title.fill = am4core.color("#cbd5e1");
+    title.marginBottom = -5;
 
-    var gradient = am5.RadialGradient.new(root, {
-        stops: [
-            { color: am5.color(0x000000) },
-            { color: am5.color(0x000000) },
-            {}
-        ]
-    })
+    chart.data = gasto_por_conta;
 
-    series.slices.template.setAll({
-        fillGradient: gradient,
-        strokeWidth: 2,
-        stroke: am5.color(0xffffff),
-        cornerRadius: 10,
-        shadowOpacity: 0.1,
-        shadowOffsetX: 2,
-        shadowOffsetY: 2,
-        shadowColor: am5.color(0x000000),
-        fillPattern: am5.GrainPattern.new(root, {
-            maxOpacity: 0.2,
-            density: 0.5,
-            colors: [am5.color(0x000000)]
-        })
-    })
+    var pieSeries = chart.series.push(new am4charts.PieSeries());
+    pieSeries.dataFields.value = "valor";
+    pieSeries.dataFields.category = "conta";
+    pieSeries.slices.template.stroke = am4core.color("#0b1220");
+    pieSeries.slices.template.strokeOpacity = 0.6;
+    pieSeries.labels.template.disabled = true;
+    pieSeries.ticks.template.disabled = true;
 
-    series.slices.template.states.create("hover", {
-        shadowOpacity: 1,
-        shadowBlur: 10
-    })
+    chart.legend = new am4charts.Legend();
+    chart.legend.position = "right";
+    chart.legend.labels.template.fill = am4core.color("#cbd5e1");
+    chart.legend.valueLabels.template.fill = am4core.color("#cbd5e1");
+    chart.legend.labels.template.text = "{conta}: R$ {valor}";
+    chart.legend.labels.template.fontSize = 8;
+    chart.legend.valueLabels.template.fontSize = 8;
 
-    series.ticks.template.setAll({
-        strokeOpacity: 0.4,
-        strokeDasharray: [2, 2]
-    })
-
-    series.states.create("hidden", {
-        endAngle: -90
-    });
-
-    // Set data
-    // https://www.amcharts.com/docs/v5/charts/percent-charts/pie-chart/#Setting_data
-    series.data.setAll([{
-        category: "Lithuania",
-        value: 500
-    }, {
-        category: "Czechia",
-        value: 300
-    }, {
-        category: "Ireland",
-        value: 200
-    }, {
-        category: "Germany",
-        value: 100
-    }]);
-
-    var legend = chart.children.push(am5.Legend.new(root, {
-        centerX: am5.percent(50),
-        x: am5.percent(50),
-        marginTop: 15,
-        marginBottom: 15,
-    }));
-    legend.markerRectangles.template.adapters.add("fillGradient", function () {
-        return undefined;
-    })
-    legend.data.setAll(series.dataItems);
-
-    series.appear(1000, 100);
-}
+  });
+})();

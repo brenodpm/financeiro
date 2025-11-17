@@ -48,7 +48,7 @@ impl Lancamento {
     }
 
     pub fn nao_categorizados_salvar(itens: &Vec<Lancamento>) {
-        arq_escrever(FIN, NAO_CAT, serde_json::to_string(&itens).unwrap());
+        arq_escrever(FIN, NAO_CAT, serde_json::to_string_pretty(&itens).unwrap());
     }
 
     pub fn lancamentos_listar() -> Vec<Lancamento> {
@@ -83,7 +83,7 @@ impl Lancamento {
             }
         }
 
-        arq_escrever(FIN, LANCAMENTOS, serde_json::to_string(&salvar).unwrap());
+        arq_escrever(FIN, LANCAMENTOS, serde_json::to_string_pretty(&salvar).unwrap());
     }
 
     pub fn lancamentos_recategorizar(&self) {

@@ -2,6 +2,7 @@
   --bg: #071021;
   --muted: #94a3b8;
   --accent: #60a5fa;
+  --negative: #cc5652;
   --panel: #0b1220;
   --radius: 10px;
   --gap: 14px;
@@ -132,6 +133,12 @@ body {
 .card-value {
   font-weight: 700;
   color: var(--accent);
+  font-size: 1.05rem
+}
+
+.card-value-negative {
+  font-weight: 700;
+  color: var(--negative);
   font-size: 1.05rem
 }
 

@@ -23,7 +23,7 @@ impl Meta{
             lista.push(self.clone());
         }
 
-        arq_escrever(FIN, METAS, serde_json::to_string(&lista).unwrap());
+        arq_escrever(FIN, METAS, serde_json::to_string_pretty(&lista).unwrap());
     }
 
     pub fn deletar(&self) {
@@ -33,6 +33,6 @@ impl Meta{
             lista.remove(pos);
         }
 
-        arq_escrever(FIN, METAS, serde_json::to_string(&lista).unwrap());
+        arq_escrever(FIN, METAS, serde_json::to_string_pretty(&lista).unwrap());
     }
 }

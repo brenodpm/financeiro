@@ -25,7 +25,7 @@ impl Banco {
 
         merge_bancos(&mut bancos, novos);
 
-        arq_escrever(FIN, BANC, serde_json::to_string(&bancos).unwrap());
+        arq_escrever(FIN, BANC, serde_json::to_string_pretty(&bancos).unwrap());
     }
 
     pub fn salvar(banco: Banco) {

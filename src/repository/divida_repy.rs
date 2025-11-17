@@ -2,7 +2,7 @@ use std::cmp::Ordering;
 
 use itertools::Itertools;
 
-use crate::dto::{DadosDivida, Divida};
+use crate::dto::Divida;
 
 use super::file_repy::{arq_escrever, arq_ler};
 
@@ -51,7 +51,7 @@ impl Divida {
             lista.push(self.clone());
         }
 
-        arq_escrever(FIN, CAT, serde_json::to_string(&lista).unwrap());
+        arq_escrever(FIN, CAT, serde_json::to_string_pretty(&lista).unwrap());
     }
 
     pub fn atualizar() {
@@ -78,6 +78,6 @@ impl Divida {
             }
         }
 
-        arq_escrever(FIN, CAT, serde_json::to_string(&lista).unwrap());
+        arq_escrever(FIN, CAT, serde_json::to_string_pretty(&lista).unwrap());
     }
 }
