@@ -1,10 +1,7 @@
-use std::env;
-
 use chrono::{Local, Months};
 use color_eyre::Result;
 use ratatui::{
     buffer::Buffer,
-    crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind},
     layout::{Constraint, Layout, Rect},
     style::Stylize,
     symbols,
@@ -15,27 +12,51 @@ use ratatui::{
     DefaultTerminal,
 };
 
-use crate::{dto::{Configuracao, DadosDivida, Divida, DividaMes, ParcelaDivida}, estilo::{
-    alternate_colors, principal_comandos, principal_titulo, GERAL_BG, GERAL_TEXT_FG,
-    LISTA_BORDA_ESTILO, LISTA_SELECIONADO_ESTILO,
-}, repository::atualizar_base, widget::alerta_wgt::Alerta};
+use crate::{
+    calc::{self, calcular_gasto_por_conta_d30, calcular_resumo},
+    dto::{
+        Banco, Categoria, Configuracao, DadosDivida, DashDivida, DashGastoPorConta, DashResumo, Divida, DividaMes, Lancamento, OptionalLazy, OptionalLazyFn, ParcelaDivida, TipoFluxo
+    },
+    estilo::{
+        GERAL_BG, GERAL_TEXT_FG, LISTA_BORDA_ESTILO, LISTA_SELECIONADO_ESTILO, alternate_colors, principal_comandos, principal_titulo
+    },
+    repository::atualizar_base,
+    widget::alerta_wgt::Alerta,
+};
 
 enum Etapa {
     Iniciando,
     Base,
+    Resumo,
+    GastoPorConta,
     Dividas,
     Finalizado,
     Sair,
 }
 
-pub struct GeradorDash {
-    pub items: Vec<Etapa>,
-    pub state: ListState,
-    pub sair: bool,
+impl Etapa {
+    fn to_string(&self) -> String {
+        match self {
+            Etapa::Iniciando => "Iniciando".to_string(),
+            Etapa::Base => "Base dos gráficos".to_string(),
+            Etapa::Resumo => "Resumo dos Gastos".to_string(),
+            Etapa::GastoPorConta => "Gasto por conta".to_string(),
+            Etapa::Dividas => "Dívidas".to_string(),
+            Etapa::Finalizado => "Finalizado".to_string(),
+            Etapa::Sair => "Sair".to_string(),
+        }
+    }
+}
 
+pub struct GeradorDash {
+    items: Vec<Etapa>,
+    state: ListState,
+    sair: bool,
 
     config: Configuracao,
+    lista_contas: Vec<String>,
     lista_dividas: Vec<ParcelaDivida>,
+    lista_lancamentos: Vec<Lancamento>,
 }
 
 impl Widget for &mut GeradorDash {
@@ -55,10 +76,23 @@ impl Widget for &mut GeradorDash {
 
 impl GeradorDash {
     pub fn new() -> Self {
+        let mut lancamentos = Lancamento::lancamentos_listar();
+        let categorias = Categoria::listar();
+
+        lancamentos.iter_mut().for_each(|l| {
+            if let OptionalLazy::Id(cat_id) = l.categoria.clone() {
+                if let Some(cat) = categorias.iter().find(|c| c.id == cat_id) {
+                    l.categoria = OptionalLazy::Some(cat.clone());
+                }
+            }
+        });
+
         Self {
             items: vec![
                 Etapa::Iniciando,
                 Etapa::Base,
+                Etapa::Resumo,
+                Etapa::GastoPorConta,
                 Etapa::Dividas,
                 Etapa::Finalizado,
                 Etapa::Sair,
@@ -67,7 +101,12 @@ impl GeradorDash {
             sair: false,
 
             config: Configuracao::buscar(),
+            lista_contas: Banco::listar()
+                .iter()
+                .map(|b| b.contas.iter().map(|c| c.nome.clone()).collect())
+                .collect(),
             lista_dividas: Vec::new(),
+            lista_lancamentos: lancamentos,
         }
     }
 
@@ -83,29 +122,21 @@ impl GeradorDash {
         Ok(())
     }
 
-    fn executar_etapa(&mut self,  terminal: &mut DefaultTerminal) {
+    fn executar_etapa(&mut self, terminal: &mut DefaultTerminal) {
         if let Some(i) = self.state.selected() {
             match self.items[i] {
-                Etapa::Iniciando => {
-                    self.inicializar();
-                    self.state.select_next();
-                }
-                Etapa::Base => {
-                    self.atualizar_base();
-                    self.state.select_next();
-                }
-                Etapa::Dividas => {
-                    self.calcular_dividas();
-                    self.state.select_next();
-                }
+                Etapa::Iniciando => self.inicializar(),
+                Etapa::Base => self.atualizar_base(),
+                Etapa::Resumo => self.resumo_valores(),
+                Etapa::Dividas => self.calcular_dividas(),
+                Etapa::GastoPorConta => self.calcular_gasto_por_conta(),
                 Etapa::Finalizado => {
-                    Alerta::atencao(vec!["Dashbard concluído".to_string()]).run(terminal);
-                    self.state.select_next();
+                    let _ = Alerta::atencao(vec!["Dashboard concluído".to_string()]).run(terminal);
                 }
-                Etapa::Sair => {
-                    self.sair = true;
-                }
+
+                Etapa::Sair => self.sair = true,
             }
+            self.state.select_next();
         }
     }
 
@@ -123,17 +154,8 @@ impl GeradorDash {
             .iter()
             .enumerate()
             .map(|(i, value)| {
-                ListItem::new(Line::styled(
-                    match value {
-                        Etapa::Iniciando => "Iniciando",
-                        Etapa::Base => "Base dos gráficos",
-                        Etapa::Dividas => "Dívidas",
-                        Etapa::Finalizado => "Finalizado",
-                        Etapa::Sair => "Sair",
-                    },
-                    GERAL_TEXT_FG,
-                ))
-                .bg(alternate_colors(i))
+                ListItem::new(Line::styled(value.to_string(), GERAL_TEXT_FG))
+                    .bg(alternate_colors(i))
             })
             .collect();
 
@@ -148,8 +170,6 @@ impl GeradorDash {
         // same method name `render`.
         StatefulWidget::render(list, area, buf, &mut self.state);
     }
-
-
 
     /******************************************************************************************************************
      *                                         PROCESSAMENTOS
@@ -166,35 +186,18 @@ impl GeradorDash {
         atualizar_base();
     }
 
+    fn resumo_valores(&mut self) {
+        DashResumo::salvar(calcular_resumo(self.lista_lancamentos.clone()));
+    }
+
     fn calcular_dividas(&mut self) {
-        let limite = self.config.endividamento_max;
-        let mut meses: Vec<DividaMes> = Vec::new();
-
-        let mut data = Local::now().date_naive();
-
-        meses.push(DividaMes::new(
-            self.lista_dividas.aberta().antes_de(data),
-            0.0,
-            "atrasado".to_string(),
+        DashDivida::salvar(calc::calcular_dividas(
+            self.lista_dividas.clone(),
+            self.config.endividamento_max,
         ));
+    }
 
-        meses.push(DividaMes::new(
-            self.lista_dividas
-                .data_igual_ou_maior_que(data)
-                .mes_e_ano(data),
-            limite,
-            "corrente".to_string(),
-        ));
-
-        for _ in 0..11 {
-            data = data.checked_add_months(Months::new(1)).unwrap();
-            meses.push(DividaMes::new(
-                self.lista_dividas.mes_e_ano(data),
-                limite,
-                data.format("%m/%Y").to_string(),
-            ));
-        }
-
-        DividaMes::salvar(meses);
+    fn calcular_gasto_por_conta(&mut self) {
+        DashGastoPorConta::salvar(calcular_gasto_por_conta_d30(self.lista_lancamentos.clone()));
     }
 }

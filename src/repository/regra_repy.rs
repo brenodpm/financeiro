@@ -83,5 +83,5 @@ fn salvar(mut regras: Vec<Regra>) {
         }
     }
 
-    arq_escrever(FIN, REGRAS, serde_json::to_string(&regras).unwrap());
+    arq_escrever(FIN, REGRAS, serde_json::to_string_pretty(&regras).unwrap());
 }

@@ -15,6 +15,7 @@ mod parcela_divida_dto;
 mod regra_dto;
 mod tipo_despesa_dto;
 mod tipo_fluxo_dto;
+mod dash;
 
 pub use banco_dto::Banco;
 pub use categoria_dto::Categoria;
@@ -34,10 +35,12 @@ pub use divida_dto::DadosDivida;
 pub use divida_mes_dto::DividaMes;
 pub use nova_regra_dto::NovaRegra;
 pub use regra_dto::Regra;
-use sha1::{Digest, Sha1};
 pub use tipo_despesa_dto::TipoDespesa;
 pub use tipo_fluxo_dto::TipoFluxo;
 
+pub use dash::*;
+
+use sha1::{Digest, Sha1};
 fn gerar_sha1(valor: String) -> String {
     let mut hasher = Sha1::new();
     hasher.update(valor.trim().to_lowercase());

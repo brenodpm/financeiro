@@ -10,6 +10,7 @@
   <script src="https://www.amcharts.com/lib/4/charts.js"></script>
   <script src="https://www.amcharts.com/lib/4/themes/animated.js"></script>
 
+  <!-- estilos -->
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -23,30 +24,30 @@
         <span>MÉDIA</span>
         <div class="card">
           <div class="card-title">Entradas</div>
-          <div class="card-value">R$ 8.450,00</div>
+          <div class="card-value" id="media-entradas"></div>
         </div>
         <div class="card">
           <div class="card-title">Saídas</div>
-          <div class="card-value">R$ 5.200,00</div>
+          <div class="card-value-negative" id="media-saidas"></div>
         </div>
         <div class="card">
           <div class="card-title">Custo de vida</div>
-          <div class="card-value">R$ 3.150,00</div>
+          <div class="card-value-negative" id="media-custo"></div>
         </div>
         <span>ATUAL</span>
         <div class="card">
           <div class="card-title">Entradas</div>
-          <div class="card-value">R$ 3.150,00</div>
+          <div class="card-value" id="atual-entradas"></div>
         </div>
         <div class="card">
           <div class="card-title">Saídas</div>
-          <div class="card-value">R$ 3.150,00</div>
+          <div class="card-value-negative" id="atual-saidas"></div>
         </div>
       </section>
 
       <section class="charts-grid">
-        <div id="gastoPorConta" class="chart" style="width:29%" aria-label="Gasto por conta"></div>
-        <div id="dividas" class="chart" style="width:69%" aria-label="Gráfico de dívidas"></div>
+        <div id="gastoPorConta" class="chart" style="width:20%" aria-label="Gasto por conta D30"></div>
+        <div id="dividas" class="chart" style="width:78%" aria-label="Gráfico de dívidas"></div>
 
         <div id="chartMultiLine" class="chart" style="width:380px" aria-label="Gráfico múltiplas linhas"></div>
         <div id="chartColumn" class="chart" style="width:380px" aria-label="Gráfico de colunas empilhadas"></div>
@@ -57,17 +58,21 @@
     </section>
   </main>
 
-  <!-- gráficos oficiais -->
-  <script src="gasto-por-conta.js"></script>
-  <script src="dividas.js"></script>
-
   <!-- dados -->
-    <script src="data/dividas.js"></script>
+  <script src="data/dividas.js"></script>
+  <script src="data/resumo.js"></script>
+  <script src="data/gasto_por_conta.js"></script>
+
+  <!-- gráficos oficiais -->
+   <script src="script/resumo.js"></script>
+  <script src="script/gasto-por-conta.js"></script>
+  <script src="script/dividas.js"></script>
 
   <!-- gráficos de exemplos -->
   <script src="chart-multiline.js"></script>
   <script src="chart-column.js"></script>
   <script src="chart-area.js"></script>
   <script src="chart-pie.js"></script>
+
 </body>
 </html>

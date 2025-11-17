@@ -51,7 +51,7 @@ impl Divida {
             lista.push(self.clone());
         }
 
-        arq_escrever(FIN, CAT, serde_json::to_string(&lista).unwrap());
+        arq_escrever(FIN, CAT, serde_json::to_string_pretty(&lista).unwrap());
     }
 
     pub fn atualizar() {
@@ -78,6 +78,6 @@ impl Divida {
             }
         }
 
-        arq_escrever(FIN, CAT, serde_json::to_string(&lista).unwrap());
+        arq_escrever(FIN, CAT, serde_json::to_string_pretty(&lista).unwrap());
     }
 }

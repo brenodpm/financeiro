@@ -9,7 +9,7 @@ const FILE: &str = "dividas.js";
 
 impl DividaMes{
     pub fn salvar(dividas: Vec<DividaMes>){
-        let json = serde_json::to_string(&dividas).unwrap();
+        let json = serde_json::to_string_pretty(&dividas).unwrap();
         let valor = format!("var dividas = {};", json);
         arq_escrever(DIR, FILE, valor);
     }

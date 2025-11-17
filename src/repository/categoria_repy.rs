@@ -37,7 +37,7 @@ impl Categoria {
             lista.push(self.clone());
         }
 
-        arq_escrever(FIN, CAT, serde_json::to_string(&lista).unwrap());
+        arq_escrever(FIN, CAT, serde_json::to_string_pretty(&lista).unwrap());
     }
 
     pub fn salvar_lista(categorias: &mut Vec<Categoria>) {
@@ -47,7 +47,7 @@ impl Categoria {
             }
         });
 
-        arq_escrever(FIN, CAT, serde_json::to_string(&categorias).unwrap());
+        arq_escrever(FIN, CAT, serde_json::to_string_pretty(&categorias).unwrap());
     }
 
     pub fn deletar(&self) {
@@ -57,6 +57,6 @@ impl Categoria {
             lista.remove(pos);
         }
 
-        arq_escrever(FIN, CAT, serde_json::to_string(&lista).unwrap());
+        arq_escrever(FIN, CAT, serde_json::to_string_pretty(&lista).unwrap());
     }
 }

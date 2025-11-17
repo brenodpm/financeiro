@@ -7,7 +7,7 @@ const FILE: &str = "config.json";
 
 impl Configuracao {
     pub fn salvar(&self) {
-        let json = serde_json::to_string(self).unwrap();
+        let json = serde_json::to_string_pretty(self).unwrap();
         arq_escrever(DIR, FILE, json);
     }
 
