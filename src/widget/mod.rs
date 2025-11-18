@@ -11,6 +11,7 @@ mod config_wgt;
 mod lista_categorias_wgt;
 mod categoria_wgt;
 mod alerta_wgt;
+mod contracheque_wgt;
 
 pub use categorizador_wgt::Categorizador;
 pub use lista_dividas_wgt::ListaDividas;
@@ -20,3 +21,4 @@ pub use gerador_dash::GeradorDash;
 pub use lista_meta_wgt::ListaMeta;
 pub use config_wgt::EditarConfiguracoes;
 pub use lista_categorias_wgt::ListaCategoria;
+pub use contracheque_wgt::ContraCheque;

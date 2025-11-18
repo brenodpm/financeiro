@@ -60,7 +60,7 @@ fn main() {
 fn importar() {
     let (lancamentos, bancos) = Lancamento::from_ofx();
 
-    Banco::salvar(bancos);
+    Banco::salvar_lista(bancos);
     Lancamento::categorizar(&lancamentos);
 }
 

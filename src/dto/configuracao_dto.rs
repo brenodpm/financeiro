@@ -6,4 +6,16 @@ pub struct Configuracao {
     
     #[serde(default)]
     pub endividamento_max: f64,
+
+    #[serde(default)]
+    pub contracheque: bool,
+
+    #[serde(default)]
+    pub contracheque_entradas: Vec<String>,
+
+    #[serde(default)]
+    pub contracheque_saidas: Vec<String>,
+    
+    #[serde(default)]
+    pub contracheque_empresa: String,
 }

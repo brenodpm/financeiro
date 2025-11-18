@@ -23,6 +23,20 @@ impl Configuracao {
             resp
         }
     }
+
+    pub fn atualizar_contracheque(
+        empresa: String,
+        entradas: Vec<String>,
+        saidas: Vec<String>
+    ) {
+        let mut conf = Configuracao::buscar();
+        
+        conf.contracheque_entradas = entradas;
+        conf.contracheque_saidas = saidas;
+        conf.contracheque_empresa = empresa;
+        
+        conf.salvar();
+    }
 }
 
 impl Default for Configuracao {
@@ -30,6 +44,10 @@ impl Default for Configuracao {
         Self {
             salario: Default::default(),
             endividamento_max: Default::default(),
+            contracheque_entradas: Default::default(),
+            contracheque_saidas: Default::default(),
+            contracheque: true,
+            contracheque_empresa: String::new(),
         }
     }
 }
