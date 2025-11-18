@@ -23,6 +23,20 @@ impl Configuracao {
             resp
         }
     }
+
+    pub fn atualizar_contracheque(
+        empresa: String,
+        entradas: Vec<String>,
+        saidas: Vec<String>
+    ) {
+        let mut conf = Configuracao::buscar();
+        
+        conf.contracheque_entradas = entradas;
+        conf.contracheque_saidas = saidas;
+        conf.contracheque_empresa = empresa;
+        
+        conf.salvar();
+    }
 }
 
 impl Default for Configuracao {

@@ -11,7 +11,7 @@ use ratatui::{
 use crate::{
     app::Etapa,
     componentes::input_wgt::Input,
-    dto::{Banco, Configuracao, Conta, Lancamento, OptionalLazy},
+    dto::{Banco, Configuracao, Conta, Lancamento, OptionalLazy, Unico},
     estilo::{principal_comandos, principal_titulo},
     widget::alerta_wgt::Alerta,
 };
@@ -185,28 +185,36 @@ impl ContraCheque {
         let data = self.data_pagamento.to_naivedate().unwrap();
         let mut lancamentos: Vec<Lancamento> = Vec::new();
 
+        let mut nome_entradas: Vec<String> = Vec::new();
         self.entradas.iter().for_each(|f| {
-            lancamentos.push(Lancamento {
-                id: String::new(),
-                descricao: f.nome.to_string(),
-                valor: f.valor.to_f64(),
-                data: data,
-                categoria: OptionalLazy::None,
-                conta: Some(conta.id.clone()),
-                regra: OptionalLazy::None,
-            });
+            if !f.nome.to_string().is_empty() && f.valor.to_f64() != 0f64 {
+                lancamentos.push(Lancamento {
+                    id: String::new(),
+                    descricao: f.nome.to_string(),
+                    valor: f.valor.to_f64(),
+                    data: data,
+                    categoria: OptionalLazy::None,
+                    conta: Some(conta.id.clone()),
+                    regra: OptionalLazy::None,
+                });
+                nome_entradas.push(f.nome.to_string());
+            }
         });
 
+        let mut nome_saidas: Vec<String> = Vec::new();
         self.saidas.iter().for_each(|f| {
-            lancamentos.push(Lancamento {
-                id: String::new(),
-                descricao: f.nome.to_string(),
-                valor: f.valor.to_f64(),
-                data: data,
-                categoria: OptionalLazy::None,
-                conta: Some(conta.id.clone()),
-                regra: OptionalLazy::None,
-            });
+            if !f.nome.to_string().is_empty() && f.valor.to_f64() != 0f64 {
+                lancamentos.push(Lancamento {
+                    id: String::new(),
+                    descricao: f.nome.to_string(),
+                    valor: f.valor.to_f64() * -1f64,
+                    data: data,
+                    categoria: OptionalLazy::None,
+                    conta: Some(conta.id.clone()),
+                    regra: OptionalLazy::None,
+                });
+                nome_saidas.push(f.nome.to_string());
+            }
         });
 
         lancamentos.push(Lancamento {
@@ -219,8 +227,16 @@ impl ContraCheque {
             regra: OptionalLazy::None,
         });
 
+        lancamentos.iter_mut().for_each(|l| {
+            l.gerar_id();
+        });
 
-        Lancamento::categorizar(&lancamentos);        
+        Lancamento::categorizar(&lancamentos);
+        Configuracao::atualizar_contracheque(
+            self.empresa.to_string(),
+            nome_entradas,
+            nome_saidas,
+        );
     }
 
     fn sair(&mut self, terminal: &mut DefaultTerminal) {
@@ -261,7 +277,8 @@ impl ContraCheque {
             KeyCode::Tab => self.para_direita(),
             KeyCode::BackTab => self.para_esquerda(),
             KeyCode::Up => self.para_cima(),
-            KeyCode::Down | KeyCode::Enter => self.para_baixo(),
+            KeyCode::Down => self.para_baixo(false),
+            KeyCode::Enter => self.para_baixo(true),
             KeyCode::Delete => self.remover_item(),
 
             _ => self.alter_input(key),
@@ -299,6 +316,7 @@ impl ContraCheque {
                 tupla.coluna += 1;
             } else {
                 tupla.coluna = 0;
+                tupla.linha += 1;
             }
 
             self.obedecer_o_ultimo(&mut tupla);
@@ -318,9 +336,12 @@ impl ContraCheque {
         }
     }
 
-    fn para_baixo(&mut self) {
+    fn para_baixo(&mut self, quebra: bool) {
         if let Editar::Tupla(mut tupla) = self.editar.clone() {
             tupla.linha += 1;
+            if quebra && (tupla.coluna == 1 || tupla.coluna == 3) {
+                tupla.coluna -= 1;
+            }
             self.obedecer_o_ultimo(&mut tupla);
             self.editar = Editar::Tupla(tupla);
         }
@@ -328,11 +349,11 @@ impl ContraCheque {
 
     fn obedecer_o_ultimo(&mut self, tupla: &mut Tupla) {
         if tupla.coluna < 2 {
-            while tupla.linha > self.entradas.len() {
+            while tupla.linha >= self.entradas.len() {
                 tupla.linha -= 1;
             }
         } else {
-            while tupla.linha > self.saidas.len() {
+            while tupla.linha >= self.saidas.len() {
                 tupla.linha -= 1;
             }
         }

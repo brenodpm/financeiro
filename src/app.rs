@@ -1,7 +1,10 @@
 use color_eyre::eyre::Result;
 use ratatui::DefaultTerminal;
 
-use crate::widget::{Categorizador, ContraCheque, EditarConfiguracoes, GeradorDash, ListaCategoria, ListaDividas, ListaMeta, Menu};
+use crate::widget::{
+    Categorizador, ContraCheque, EditarConfiguracoes, GeradorDash, ListaCategoria, ListaDividas,
+    ListaMeta, Menu,
+};
 
 #[derive(Clone)]
 pub enum Etapa {
@@ -56,7 +59,7 @@ impl App {
                 Etapa::Configuracoes => self.configuracoes(&mut terminal),
                 Etapa::Categorias => self.categorias(&mut terminal),
                 Etapa::ContraCheque => self.contracheque(&mut terminal),
-                
+
                 Etapa::Sair => break,
             }
         }
@@ -85,12 +88,14 @@ impl App {
 
     fn contracheque(&mut self, terminal: &mut DefaultTerminal) {
         match ContraCheque::default().run(terminal) {
-            Ok(_) => {}
+            Ok(etapa) => {
+                self.etapa = etapa;
+            }
             Err(e) => {
                 log::info!("Falha ao informar contra-cheque: {e}");
+                self.etapa = Etapa::Menu
             }
         }
-        self.etapa = Etapa::Menu
     }
 
     fn dash(&mut self, terminal: &mut DefaultTerminal) {

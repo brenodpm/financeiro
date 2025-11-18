@@ -34,6 +34,7 @@ impl Lancamento {
             if novo.valor != 0f64 && !pendente.iter().any(|a| a.id == novo.id) {
                 pendente.push(novo.clone());
             }
+            
         });
 
         Lancamento::nao_categorizados_salvar(&pendente);
