@@ -1,3 +1,5 @@
+use std::vec;
+
 use crate::dto::{Lancamento, OptionalLazy};
 
 use super::file_repy::{arq_escrever, arq_ler};
@@ -34,7 +36,6 @@ impl Lancamento {
             if novo.valor != 0f64 && !pendente.iter().any(|a| a.id == novo.id) {
                 pendente.push(novo.clone());
             }
-            
         });
 
         Lancamento::nao_categorizados_salvar(&pendente);
@@ -45,11 +46,21 @@ impl Lancamento {
         if json.is_empty() {
             json = "[]".to_string();
         }
-        serde_json::from_str(&json).unwrap()
+
+        match serde_json::from_str(&json) {
+            Ok(vec) => vec,
+            Err(erro) => {
+                log::error!("Erro ao desserializar lançamentos: {}", erro);
+                vec![]
+            }
+        }
     }
 
     pub fn nao_categorizados_salvar(itens: &Vec<Lancamento>) {
-        arq_escrever(FIN, NAO_CAT, serde_json::to_string_pretty(&itens).unwrap());
+        match serde_json::to_string_pretty(&itens) {
+            Ok(json) => arq_escrever(FIN, NAO_CAT, json),
+            Err(erro) => log::error!("Erro ao serializar lançamentos: {}", erro),
+        };
     }
 
     pub fn lancamentos_listar() -> Vec<Lancamento> {
@@ -57,7 +68,14 @@ impl Lancamento {
         if json.is_empty() {
             json = "[]".to_string();
         }
-        serde_json::from_str(&json).unwrap()
+
+        match serde_json::from_str(&json) {
+            Ok(vec) => vec,
+            Err(erro) => {
+                log::error!("Erro ao desserializar lançamentos: {}", erro);
+                vec![]
+            }
+        }
     }
 
     pub fn lancamentos_adicionar(itens: &Vec<Lancamento>) {
@@ -84,7 +102,10 @@ impl Lancamento {
             }
         }
 
-        arq_escrever(FIN, LANCAMENTOS, serde_json::to_string_pretty(&salvar).unwrap());
+        match serde_json::to_string_pretty(&salvar) {
+            Ok(json) => arq_escrever(FIN, LANCAMENTOS, json),
+            Err(erro) => log::error!("Erro ao serializar lançamentos: {}", erro),
+        };
     }
 
     pub fn lancamentos_recategorizar(&self) {

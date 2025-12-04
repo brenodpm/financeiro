@@ -1,3 +1,5 @@
+use std::vec;
+
 use crate::dto::{Categoria, FluxoRegra, Lazy, LazyFn, Regra, TipoFluxo};
 
 use super::file_repy::{arq_escrever, arq_ler};
@@ -11,9 +13,19 @@ pub trait Buscar {
 
 impl Buscar for Vec<Regra> {
     fn buscar(&self, descricao: &String, fluxo: FluxoRegra) -> Option<Regra> {
-        self.into_iter()
-            .find(|item| item.fluxo == fluxo && descricao.contains(&item.regex))
-            .map(|item| item.clone())
+        let mut resp: Option<Regra> = None;
+
+        for i in 0..self.len() {
+            if self[i].fluxo != fluxo {
+                continue;
+            }
+            if descricao.contains(self[i].regex.to_lowercase().as_str()) {
+                resp = Some(self[i].clone());
+                break;
+            }
+        }
+
+        resp
     }
 }
 
@@ -24,7 +36,13 @@ impl Regra {
         if json.is_empty() {
             json = "[]".to_string();
         }
-        let mut resp: Vec<Regra> = serde_json::from_str(&json).unwrap();
+        let mut resp: Vec<Regra> = match serde_json::from_str(&json) {
+            Ok(vec) => vec,
+            Err(erro) => {
+                log::error!("Erro ao ler regras: {}", erro);
+                vec![]
+            }
+        };
 
         resp.iter_mut().for_each(|r| {
             r.categoria = Lazy::Some(
@@ -38,16 +56,24 @@ impl Regra {
         resp
     }
 
-    pub fn adicionar(regras: &mut Vec<Regra>) {
+    pub fn adicionar(novas: &mut Vec<Regra>) {
         let mut atuais = Regra::listar();
-        atuais.append(regras);
+
+        novas.into_iter().for_each(|n| {
+            if !atuais.iter().any(|a| a.id == n.id) {
+                atuais.push(n.clone());
+            }
+        });
 
         salvar(atuais);
     }
 
-    pub fn nova(regra: Regra) {
+    pub fn nova(nova: Regra) {
         let mut atuais = Regra::listar();
-        atuais.push(regra);
+
+        if !atuais.iter().any(|a| a.id == nova.id) {
+            atuais.push(nova.clone());
+        }
 
         salvar(atuais);
     }
@@ -72,6 +98,10 @@ impl Regra {
             }
         });
     }
+    
+    pub fn salvar_lista(itens: &Vec<Regra>) {
+        salvar(itens.clone());
+    }
 }
 
 fn salvar(mut regras: Vec<Regra>) {
@@ -83,5 +113,8 @@ fn salvar(mut regras: Vec<Regra>) {
         }
     }
 
-    arq_escrever(FIN, REGRAS, serde_json::to_string_pretty(&regras).unwrap());
+    match serde_json::to_string_pretty(&regras) {
+        Ok(json) => arq_escrever(FIN, REGRAS, json),
+        Err(erro) => log::error!("Erro ao salvar regras: {}", erro),
+    };
 }

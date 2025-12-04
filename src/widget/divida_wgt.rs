@@ -128,7 +128,10 @@ impl EditarDivida {
 
     pub fn run(mut self, terminal: &mut DefaultTerminal) -> Result<Option<Divida>> {
         while !matches!(self.status, Status::Sair(_)) {
-            terminal.draw(|frame| frame.render_widget(&mut self, frame.area()))?;
+            if let Err(erro) = terminal.draw(|frame| frame.render_widget(&mut self, frame.area())){
+                log::error!("Erro ao desenhar tela Editar Divida: {}", erro);
+            };
+            
             if let Event::Key(key) = event::read()? {
                 self.handle_key(key);
             };

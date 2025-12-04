@@ -52,7 +52,10 @@ pub fn arq_deletar_dir(dir: &str) {
     path.push(&dir);
 
     if Path::new(&path).exists() {
-        remove_dir_all(path).unwrap();
+        match remove_dir_all(&path) {
+            Ok(_) => {}
+            Err(erro) => log::error!("Erro ao deletar diretório: {}", erro),
+        }
     }
 }
 

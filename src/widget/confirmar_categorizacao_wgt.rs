@@ -100,7 +100,6 @@ fn encontrar_categoria() -> (Vec<Lancamento>, Vec<Lancamento>) {
         nao_encontrado.len()
     );
 
-    //Lancamento::nao_categorizados_salvar(&nao_encontrado);
     (
         encontrados
             .into_iter()
@@ -114,7 +113,10 @@ impl ConfirmarCategorias {
     pub fn run(mut self, terminal: &mut DefaultTerminal) -> Result<()> {
         self.state.select_first();
         while !self.should_exit && self.itens.len() > 0 {
-            terminal.draw(|frame| frame.render_widget(&mut self, frame.area()))?;
+            if let Err(erro) = terminal.draw(|frame| frame.render_widget(&mut self, frame.area())) {
+                log::error!("Erro ao desenhar tela ConfirmarCategorias: {}", erro);
+            };
+
             if let Event::Key(key) = event::read()? {
                 self.handle_key(key, terminal);
             };
@@ -164,34 +166,48 @@ impl ConfirmarCategorias {
                     self.despesas.clone()
                 },
             );
-            let (regex, selecionado) = select.run(terminal).unwrap();
-            match selecionado {
-                Some(cat) => {
-                    if regex != item.descricao {
-                        let mut regra = Regra {
-                            id: String::new(),
-                            categoria: Lazy::Some(cat.clone()),
-                            fluxo: if item.valor > 0.0 {
-                                FluxoRegra::Entrada
-                            } else {
-                                FluxoRegra::Saida
-                            },
-                            regex: regex,
-                        };
 
-                        regra.gerar_id();
-
-                        Regra::nova(regra.clone());
-                        self.itens[i].regra = OptionalLazy::Some(regra);
-                    } else {
-                        self.itens[i].regra = OptionalLazy::None;
+            match select.run(terminal) {
+                Ok((regex, selecionado)) => match selecionado {
+                    Some(cat) => {
+                        if regex != item.descricao {
+                            let regra = gerar_nova_regra(item, regex, &cat);
+                            
+                            self.itens[i].regra = OptionalLazy::Some(regra);
+                        } else {
+                            self.itens[i].regra = OptionalLazy::None;
+                        }
+                        self.itens[i].categoria = OptionalLazy::Some(cat);
                     }
-                    self.itens[i].categoria = OptionalLazy::Some(cat);
-                }
-                None => {}
+                    None => {}
+                },
+                Err(_erro) => log::error!("Erro ao selecionar categoria"),
             }
         }
     }
+}
+
+fn gerar_nova_regra(item: Lancamento, regex: String, cat: &Categoria) -> Regra {
+    let mut regra = montar_regra(item, regex, cat);
+
+    regra.gerar_id();
+
+    Regra::nova(regra.clone());
+    regra
+}
+
+fn montar_regra(item: Lancamento, regex: String, cat: &Categoria) -> Regra {
+    let regra = Regra {
+        id: String::new(),
+        categoria: Lazy::Some(cat.clone()),
+        fluxo: if item.valor > 0.0 {
+            FluxoRegra::Entrada
+        } else {
+            FluxoRegra::Saida
+        },
+        regex: regex,
+    };
+    regra
 }
 
 impl Widget for &mut ConfirmarCategorias {

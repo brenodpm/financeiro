@@ -112,7 +112,10 @@ impl Categorizador {
         self.atualizar(terminal);
         self.state.select_first();
         while !self.should_exit && self.items.len() > 0 {
-            terminal.draw(|frame| frame.render_widget(&mut self, frame.area()))?;
+            if let Err(erro) = terminal.draw(|frame| frame.render_widget(&mut self, frame.area())) {
+                log::error!("Erro ao desenhar tela Categorizador: {}", erro);
+            };
+
             if let Event::Key(key) = event::read()? {
                 self.handle_key(key, terminal);
             };
@@ -154,10 +157,14 @@ impl Categorizador {
                     self.despesas.clone()
                 },
             );
-            let (regex, selecionado) = select.run(terminal).unwrap();
 
-            self.items[i].regex = regex;
-            self.items[i].categoria = selecionado;
+            match select.run(terminal) {
+                Ok((regex, selecionado)) => {
+                    self.items[i].regex = regex;
+                    self.items[i].categoria = selecionado;
+                }
+                Err(erro) => log::error!("Erro ao selecionar categoria: {}", erro),
+            };
         }
     }
 
@@ -184,7 +191,9 @@ impl Categorizador {
             });
 
         Regra::adicionar(&mut regras);
-        ConfirmarCategorias::default().run(terminal).unwrap();
+        if let Err(erro) = ConfirmarCategorias::default().run(terminal) {
+            log::error!("Erro ao confirmar categorias: {}", erro);
+        }
         //Lancamento::recategorizar();
         self.items = buscar_itens();
         self.state.select_first();

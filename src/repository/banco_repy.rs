@@ -13,7 +13,13 @@ impl Banco {
         if json.is_empty() {
             json = "[]".to_string();
         }
-        serde_json::from_str(&json).unwrap()
+        match serde_json::from_str(&json) {
+            Ok(list) => list,
+            Err(erro) => {
+                log::error!("Erro ao ler bancos: {}", erro);
+                vec![]
+            }
+        }
     }
 
     pub fn buscar_id(id: String) -> Option<Banco> {
@@ -25,7 +31,10 @@ impl Banco {
 
         merge_bancos(&mut bancos, novos);
 
-        arq_escrever(FIN, BANC, serde_json::to_string_pretty(&bancos).unwrap());
+        match serde_json::to_string_pretty(&bancos) {
+            Ok(json) => arq_escrever(FIN, BANC, json),
+            Err(erro) => log::error!("Erro ao salvar bancos: {}", erro),
+        }
     }
 
     pub fn salvar(banco: Banco) {

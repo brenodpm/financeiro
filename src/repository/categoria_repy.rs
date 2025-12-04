@@ -1,3 +1,5 @@
+use std::vec;
+
 use itertools::Itertools;
 
 use crate::dto::{Categoria, Unico};
@@ -13,7 +15,13 @@ impl Categoria {
         if json.is_empty() {
             json = "[]".to_string();
         }
-        let mut resp: Vec<Categoria> = serde_json::from_str(&json).unwrap();
+        let mut resp: Vec<Categoria> = match serde_json::from_str(&json) {
+            Ok(vec) => vec,
+            Err(error) => {
+                log::error!("Erro ao desserializar categorias: {}", error);
+                vec![]
+            }
+        };
 
         resp = resp
             .into_iter()
@@ -37,7 +45,10 @@ impl Categoria {
             lista.push(self.clone());
         }
 
-        arq_escrever(FIN, CAT, serde_json::to_string_pretty(&lista).unwrap());
+        match serde_json::to_string_pretty(&lista) {
+            Ok(json) => arq_escrever(FIN, CAT, json),
+            Err(erro) => log::error!("Erro ao serializar categorias: {}", erro),
+        };
     }
 
     pub fn salvar_lista(categorias: &mut Vec<Categoria>) {
@@ -47,7 +58,10 @@ impl Categoria {
             }
         });
 
-        arq_escrever(FIN, CAT, serde_json::to_string_pretty(&categorias).unwrap());
+        match serde_json::to_string_pretty(&categorias) {
+            Ok(json) => arq_escrever(FIN, CAT, json),
+            Err(erro) => log::error!("Erro ao serializar categorias: {}", erro),
+        };
     }
 
     pub fn deletar(&self) {
@@ -57,6 +71,9 @@ impl Categoria {
             lista.remove(pos);
         }
 
-        arq_escrever(FIN, CAT, serde_json::to_string_pretty(&lista).unwrap());
+        match serde_json::to_string_pretty(&lista) {
+            Ok(json) => arq_escrever(FIN, CAT, json),
+            Err(erro) => log::error!("Erro ao serializar categorias: {}", erro),
+        };
     }
 }

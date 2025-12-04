@@ -8,9 +8,7 @@ use ratatui::{
     DefaultTerminal,
 };
 
-use crate::estilo::{
-    principal_comandos, principal_titulo_alerta, GERAL_TEXT_FG,
-};
+use crate::estilo::{principal_comandos, principal_titulo_alerta, GERAL_TEXT_FG};
 
 pub struct Alerta {
     sair: bool,
@@ -23,7 +21,7 @@ impl Widget for &mut Alerta {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let tamanho: u16 = (self.texto.len() + 2).try_into().unwrap_or(u16::MAX);
 
-         let [_esquerdo, caixa, _direito] = Layout::horizontal([
+        let [_esquerdo, caixa, _direito] = Layout::horizontal([
             Constraint::Fill(1),
             Constraint::Fill(3),
             Constraint::Fill(1),
@@ -55,7 +53,10 @@ impl Alerta {
 
     pub fn run(mut self, terminal: &mut DefaultTerminal) -> Result<bool> {
         while !self.sair {
-            terminal.draw(|frame| frame.render_widget(&mut self, frame.area()))?;
+            if let Err(erro) = terminal.draw(|frame| frame.render_widget(&mut self, frame.area())) {
+                log::info!("Falha ao desenhar a tela Alerta: {erro}");
+            };
+
             if let Event::Key(key) = event::read()? {
                 self.handle_key(key);
             };
@@ -84,7 +85,7 @@ impl Alerta {
             KeyCode::Esc => {
                 self.resp = false;
                 self.sair = true;
-            },
+            }
             _ => {}
         }
     }

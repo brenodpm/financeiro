@@ -66,7 +66,10 @@ impl ListaCategoria {
     pub fn run(mut self, terminal: &mut DefaultTerminal) -> Result<()> {
         self.state.select_first();
         while !self.sair {
-            terminal.draw(|frame| frame.render_widget(&mut self, frame.area()))?;
+            if let Err(erro) = terminal.draw(|frame| frame.render_widget(&mut self, frame.area())) {
+                log::error!("Erro ao desenhar tela Lista de Categorias: {}", erro);
+            };
+
             if let Event::Key(key) = event::read()? {
                 self.handle_key(key, terminal);
             };
@@ -127,7 +130,6 @@ impl ListaCategoria {
                     lancamentos.iter().for_each(|l| {
                         l.lancamentos_recategorizar();
                     });
-                    
 
                     categoria.deletar();
                     self.categorias = Categoria::listar();
@@ -145,24 +147,30 @@ impl ListaCategoria {
     }
 
     fn nova_categoria(&mut self, terminal: &mut DefaultTerminal) {
-        match EditarCategoria::new().run(terminal).unwrap() {
-            Some(categoria) => {
-                categoria.salvar();
-                self.categorias = Categoria::listar();
-            }
-            None => {}
+        match EditarCategoria::new().run(terminal) {
+            Ok(op) => match op {
+                Some(categoria) => {
+                    categoria.salvar();
+                    self.categorias = Categoria::listar();
+                }
+                None => {}
+            },
+            Err(erro) => log::error!("Erro ao criar nova categoria: {}", erro),
         }
     }
 
     fn alterar_categoria(&mut self, terminal: &mut DefaultTerminal) {
         if let Some(i) = self.state.selected() {
             let categoria = self.categorias[i].clone();
-            match EditarCategoria::set(categoria).run(terminal).unwrap() {
-                Some(categoria) => {
-                    categoria.salvar();
-                    self.categorias = Categoria::listar();
-                }
-                None => {}
+            match EditarCategoria::set(categoria).run(terminal) {
+                Ok(op) => match op {
+                    Some(categoria) => {
+                        categoria.salvar();
+                        self.categorias = Categoria::listar();
+                    }
+                    None => {}
+                },
+                Err(erro) => log::error!("Erro ao editar categoria: {}", erro),
             }
         }
     }

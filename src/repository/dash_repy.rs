@@ -10,22 +10,28 @@ const FIN: &str = "Financeiro/";
 
 impl DashResumo {
     pub fn salvar(resumo: DashResumo) {
-        escrever("resumo", serde_json::to_string_pretty(&resumo).unwrap());
+        match serde_json::to_string_pretty(&resumo) {
+            Ok(json) => escrever("resumo", json),
+            Err(erro) => log::error!("Erro ao salvar o resumo: {}", erro),
+        };
     }
 }
 
 impl DashGastoPorConta {
     pub fn salvar(gastos: Vec<DashGastoPorConta>) {
-        escrever(
-            "gasto_por_conta",
-            serde_json::to_string_pretty(&gastos).unwrap(),
-        );
+        match serde_json::to_string_pretty(&gastos) {
+            Ok(json) => escrever("gasto_por_conta", json),
+            Err(erro) => log::error!("Erro ao salvar os gastos por conta: {}", erro),
+        };
     }
 }
 
 impl DashDivida {
     pub fn salvar(dividas: Vec<DashDivida>) {
-        escrever("dividas", serde_json::to_string_pretty(&dividas).unwrap());
+        match serde_json::to_string_pretty(&dividas) {
+            Ok(json) => escrever("dividas", json),
+            Err(erro) => log::error!("Erro ao salvar as dívidas: {}", erro),
+        };
     }
 }
 
@@ -46,15 +52,21 @@ fn escrever(nome: &str, conteudo: String) {
 fn transferir_diretorio(dir: &Dir, destino: &str) {
     for file in dir.files() {
         if let Some(content) = file.contents_utf8() {
-            arq_escrever(
-                &(FIN.to_string() + destino),
-                file.path().file_name().unwrap().to_str().unwrap(),
-                content.to_string(),
-            );
+            match file.path().file_name() {
+                Some(file) => arq_escrever(
+                    &(FIN.to_string() + destino),
+                    file.to_str().unwrap(),
+                    content.to_string(),
+                ),
+                None => log::error!("Erro ao transferir o arquivo {}", file.path().display()),
+            }
         }
     }
 
     for dir in dir.dirs() {
-        transferir_diretorio(dir, dir.path().to_str().unwrap());
+        match dir.path().to_str() {
+            Some(destino) => transferir_diretorio(dir, destino),
+            None => log::error!("Erro ao transferir o diretório {}", dir.path().display()),
+        };
     }
 }

@@ -16,7 +16,14 @@ impl Divida {
         if json.is_empty() {
             json = "[]".to_string();
         }
-        let resp: Vec<Divida> = serde_json::from_str(&json).unwrap();
+
+        let resp: Vec<Divida> = match serde_json::from_str(&json) {
+            Ok(d) => d,
+            Err(erro) => {
+                log::error!("Erro ao ler dívidas: {}", erro);
+                Vec::new()
+            }
+        };
 
         let sorted: Vec<Divida> = resp
             .into_iter()
@@ -51,7 +58,10 @@ impl Divida {
             lista.push(self.clone());
         }
 
-        arq_escrever(FIN, CAT, serde_json::to_string_pretty(&lista).unwrap());
+        match serde_json::to_string_pretty(&lista) {
+            Ok(json) => arq_escrever(FIN, CAT, json),
+            Err(erro) => log::error!("Erro ao salvar dívidas: {}", erro),
+        }
     }
 
     pub fn atualizar() {
@@ -78,6 +88,9 @@ impl Divida {
             }
         }
 
-        arq_escrever(FIN, CAT, serde_json::to_string_pretty(&lista).unwrap());
+        match serde_json::to_string_pretty(&lista) {
+            Ok(json) => arq_escrever(FIN, CAT, json),
+            Err(erro) => log::error!("Erro ao salvar dívidas: {}", erro),
+        }
     }
 }

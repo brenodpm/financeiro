@@ -1,6 +1,6 @@
 use std::env;
 
-use color_eyre::Result;
+use color_eyre::{Result, eyre::Ok};
 use ratatui::{
     buffer::Buffer,
     crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind},
@@ -34,13 +34,18 @@ impl Menu {
         self.state.select_first();
 
         while self.etapa.is_none() {
-            terminal.draw(|frame| frame.render_widget(&mut self, frame.area()))?;
+           if let Err(erro) = terminal.draw(|frame| frame.render_widget(&mut self, frame.area())){
+                log::error!("Erro ao desenhar tela Menu: {}", erro);
+            }
             if let Event::Key(key) = event::read()? {
                 self.handle_key(key);
             };
         }
 
-        Ok(self.etapa.unwrap())
+        match self.etapa {
+            Some(etapa) => Ok(etapa),
+            None => Ok(Etapa::Menu),
+        }
     }
 
     pub fn handle_key(&mut self, key: KeyEvent) {

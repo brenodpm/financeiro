@@ -7,8 +7,10 @@ const FILE: &str = "config.json";
 
 impl Configuracao {
     pub fn salvar(&self) {
-        let json = serde_json::to_string_pretty(self).unwrap();
-        arq_escrever(DIR, FILE, json);
+        match serde_json::to_string_pretty(self) {
+            Ok(json) => arq_escrever(DIR, FILE, json),
+            Err(erro) => log::error!("Erro ao salvar configuração: {}", erro),
+        };
     }
 
     pub fn buscar() -> Self {
@@ -19,22 +21,24 @@ impl Configuracao {
             config.salvar();
             config
         } else {
-            let resp: Configuracao = serde_json::from_str(&json).unwrap();
+            let resp: Configuracao = match serde_json::from_str(&json) {
+                Ok(conf) => conf,
+                Err(erro) => {
+                    println!("Erro ao ler configuração: {}", erro);
+                    Configuracao::default()
+                }
+            };
             resp
         }
     }
 
-    pub fn atualizar_contracheque(
-        empresa: String,
-        entradas: Vec<String>,
-        saidas: Vec<String>
-    ) {
+    pub fn atualizar_contracheque(empresa: String, entradas: Vec<String>, saidas: Vec<String>) {
         let mut conf = Configuracao::buscar();
-        
+
         conf.contracheque_entradas = entradas;
         conf.contracheque_saidas = saidas;
         conf.contracheque_empresa = empresa;
-        
+
         conf.salvar();
     }
 }

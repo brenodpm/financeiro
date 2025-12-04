@@ -48,7 +48,9 @@ impl ListaDividas {
     pub fn run(mut self, terminal: &mut DefaultTerminal) -> Result<()> {
         self.state.select_first();
         while !self.sair {
-            terminal.draw(|frame| frame.render_widget(&mut self, frame.area()))?;
+            if let Err(erro) = terminal.draw(|frame| frame.render_widget(&mut self, frame.area())) {
+                log::error!("Erro ao desenhar tela Lista de dividas: {}", erro);
+            }
             if let Event::Key(key) = event::read()? {
                 self.handle_key(key, terminal);
             };
@@ -79,29 +81,35 @@ impl ListaDividas {
     }
 
     fn nova_divida(&mut self, terminal: &mut DefaultTerminal) {
-        match EditarDivida::new().run(terminal).unwrap() {
-            Some(divida) => {
-                divida.salvar();
-                self.dividas = Divida::listar();
+        match EditarDivida::new().run(terminal) {
+            Ok(ok) => match ok {
+                Some(divida) => {
+                    divida.salvar();
+                    self.dividas = Divida::listar();
 
-                if let Some(i) = self.dividas.iter().position(|a| a.id == divida.id) {
-                    self.state.select(Some(i));
-                    self.alterar_divida(terminal);
+                    if let Some(i) = self.dividas.iter().position(|a| a.id == divida.id) {
+                        self.state.select(Some(i));
+                        self.alterar_divida(terminal);
+                    }
                 }
-            }
-            None => {}
+                None => {}
+            },
+            Err(erro) => log::error!("Erro ao editar nova divida: {}", erro),
         }
     }
 
     fn alterar_divida(&mut self, terminal: &mut DefaultTerminal) {
         if let Some(i) = self.state.selected() {
             let divida = self.dividas[i].clone();
-            match EditarDivida::from(&divida).run(terminal).unwrap() {
-                Some(divida) => {
-                    divida.salvar();
-                    self.dividas = Divida::listar();
-                }
-                None => {}
+            match EditarDivida::from(&divida).run(terminal) {
+                Ok(op) => match op {
+                    Some(divida) => {
+                        divida.salvar();
+                        self.dividas = Divida::listar();
+                    }
+                    None => {}
+                },
+                Err(erro) => log::error!("Erro ao editar divida: {}", erro),
             }
         }
     }
