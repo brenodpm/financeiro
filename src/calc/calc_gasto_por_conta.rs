@@ -2,18 +2,18 @@ use std::collections::HashMap;
 
 use crate::{
     calc::calc_lancamentos_filtros::Lancamentos,
-    dto::{DashGastoPorConta, Lancamento, OptionalLazyFn, TipoFluxo},
+    dto::{DashGastoPor, Lancamento, OptionalLazyFn, TipoFluxo},
 };
 
-pub fn calcular_gasto_por_conta_d30(lancamentos: Vec<Lancamento>) -> Vec<DashGastoPorConta> {
+pub fn calcular_gasto_por_conta_d30(lancamentos: Vec<Lancamento>) -> Vec<DashGastoPor> {
     let mut resp: HashMap<String, f64> = HashMap::new();
 
     filtrar_e_somar_despesa_por_conta(&mut resp, lancamentos);
 
-    let mut list: Vec<DashGastoPorConta> = resp
+    let mut list: Vec<DashGastoPor> = resp
         .iter()
-        .map(|h| DashGastoPorConta {
-            conta: h.0.clone(),
+        .map(|h| DashGastoPor {
+            nome: h.0.clone(),
             valor: h.1.clone(),
         })
         .collect();

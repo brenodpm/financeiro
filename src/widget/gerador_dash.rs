@@ -1,3 +1,5 @@
+use std::f32::consts::E;
+
 use color_eyre::Result;
 use ratatui::{
     buffer::Buffer,
@@ -12,12 +14,14 @@ use ratatui::{
 };
 
 use crate::{
-    calc::{self, calcular_gasto_por_conta_d30, calcular_resumo},
+    calc::{self, calcular_gasto_por_categoria, calcular_gasto_por_conta_d30, calcular_resumo},
     dto::{
-        Categoria, Configuracao, DashDivida, DashGastoPorConta, DashResumo, Divida, Lancamento, OptionalLazy, ParcelaDivida
+        Categoria, Configuracao, DashDivida, DashGastoPor, DashGastoPorCategoria, DashResumo,
+        Divida, Lancamento, OptionalLazy, ParcelaDivida,
     },
     estilo::{
-        GERAL_BG, GERAL_TEXT_FG, LISTA_BORDA_ESTILO, LISTA_SELECIONADO_ESTILO, alternate_colors, principal_comandos, principal_titulo
+        alternate_colors, principal_comandos, principal_titulo, GERAL_BG, GERAL_TEXT_FG,
+        LISTA_BORDA_ESTILO, LISTA_SELECIONADO_ESTILO,
     },
     repository::atualizar_base,
     widget::alerta_wgt::Alerta,
@@ -28,6 +32,7 @@ enum Etapa {
     Base,
     Resumo,
     GastoPorConta,
+    GastoPorCategoria,
     Dividas,
     Finalizado,
     Sair,
@@ -40,6 +45,7 @@ impl Etapa {
             Etapa::Base => "Base dos gráficos".to_string(),
             Etapa::Resumo => "Resumo dos Gastos".to_string(),
             Etapa::GastoPorConta => "Gasto por conta".to_string(),
+            Etapa::GastoPorCategoria => "Gasto por categoria".to_string(),
             Etapa::Dividas => "Dívidas".to_string(),
             Etapa::Finalizado => "Finalizado".to_string(),
             Etapa::Sair => "Sair".to_string(),
@@ -55,6 +61,7 @@ pub struct GeradorDash {
     config: Configuracao,
     lista_dividas: Vec<ParcelaDivida>,
     lista_lancamentos: Vec<Lancamento>,
+    categorias: Vec<Categoria>,
 }
 
 impl Widget for &mut GeradorDash {
@@ -91,6 +98,7 @@ impl GeradorDash {
                 Etapa::Base,
                 Etapa::Resumo,
                 Etapa::GastoPorConta,
+                Etapa::GastoPorCategoria,
                 Etapa::Dividas,
                 Etapa::Finalizado,
                 Etapa::Sair,
@@ -101,6 +109,7 @@ impl GeradorDash {
             config: Configuracao::buscar(),
             lista_dividas: Vec::new(),
             lista_lancamentos: lancamentos,
+            categorias: Categoria::listar(),
         }
     }
 
@@ -110,9 +119,9 @@ impl GeradorDash {
         while !self.sair {
             self.executar_etapa(terminal);
 
-           if let Err(erro) = terminal.draw(|frame| frame.render_widget(&mut self, frame.area())){
+            if let Err(erro) = terminal.draw(|frame| frame.render_widget(&mut self, frame.area())) {
                 log::error!("Erro ao desenhar tela GeradorDash: {}", erro);
-           }
+            }
         }
 
         Ok(())
@@ -126,6 +135,7 @@ impl GeradorDash {
                 Etapa::Resumo => self.resumo_valores(),
                 Etapa::Dividas => self.calcular_dividas(),
                 Etapa::GastoPorConta => self.calcular_gasto_por_conta(),
+                Etapa::GastoPorCategoria => self.calcular_gasto_por_categoria(),
                 Etapa::Finalizado => {
                     let _ = Alerta::atencao(vec!["Dashboard concluído".to_string()]).run(terminal);
                 }
@@ -190,6 +200,13 @@ impl GeradorDash {
     }
 
     fn calcular_gasto_por_conta(&mut self) {
-        DashGastoPorConta::salvar(calcular_gasto_por_conta_d30(self.lista_lancamentos.clone()));
+        DashGastoPor::salvar(calcular_gasto_por_conta_d30(self.lista_lancamentos.clone()));
+    }
+
+    fn calcular_gasto_por_categoria(&mut self) {
+        DashGastoPorCategoria::salvar(calcular_gasto_por_categoria(
+            self.categorias.clone(),
+            self.lista_lancamentos.clone(),
+        ));
     }
 }
