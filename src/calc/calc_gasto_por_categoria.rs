@@ -27,7 +27,7 @@ pub fn calcular_gasto_por_categoria(
         }
     }
 
-    resultados.insert(0, tipos);
+    resultados.push(tipos);
 
     resultados
 }
@@ -55,7 +55,7 @@ fn por_tipo(
     }
 
     if tipos.valores.len() > 1 {
-        resultados.insert(0, tipos);
+        resultados.push(tipos);
     }
 
     total
@@ -84,7 +84,7 @@ fn por_categoria(
     }
 
     if categoria.valores.len() > 1 {
-        resultados.insert(0, categoria);
+        resultados.push(categoria);
     }
 
     total

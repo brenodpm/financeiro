@@ -47,8 +47,8 @@
             chart.legend.labels.template.fill = am4core.color("#cbd5e1");
             chart.legend.valueLabels.template.fill = am4core.color("#cbd5e1");
             chart.legend.labels.template.text = "{nome}: R$ {valor}";
-            chart.legend.labels.template.fontSize = 8;
-            chart.legend.valueLabels.template.fontSize = 8;
+            chart.legend.labels.template.fontSize = 10;
+            chart.legend.valueLabels.template.fontSize = 10;
         });
     });
 })();
