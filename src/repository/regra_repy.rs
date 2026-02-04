@@ -108,7 +108,7 @@ impl Regra {
         salvar(itens.clone());
     }
 
-    pub fn expurgo() {
+    pub fn garantir_integridade() {
         let mut regras = Regra::listar_lazy();
         let lancamentos = Lancamento::lancamentos_listar();
 

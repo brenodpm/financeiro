@@ -2,7 +2,7 @@ use std::vec;
 
 use itertools::Itertools;
 
-use crate::dto::{Categoria, Unico};
+use crate::dto::{Categoria, Regra, Unico};
 
 use super::file_repy::{arq_escrever, arq_ler};
 
@@ -75,5 +75,7 @@ impl Categoria {
             Ok(json) => arq_escrever(FIN, CAT, json),
             Err(erro) => log::error!("Erro ao serializar categorias: {}", erro),
         };
+
+        Regra::garantir_integridade();
     }
 }

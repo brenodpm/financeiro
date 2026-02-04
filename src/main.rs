@@ -54,7 +54,7 @@ fn main() {
     importar();
     
     Divida::atualizar();
-    Regra::expurgo();
+    Regra::garantir_integridade();
 
     start_tui().unwrap_or_else(|e| log::error!("Falha ao executar o terminal: {e:?}"));
     log::info!("Finalizado");
