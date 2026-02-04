@@ -115,7 +115,7 @@ impl ListaCategoria {
                 ));
             }
 
-            let regras: Vec<Regra> = Regra::listar()
+            let regras: Vec<Regra> = Regra::listar_full()
                 .into_iter()
                 .filter(|l| l.categoria.id() == categoria.id)
                 .collect();

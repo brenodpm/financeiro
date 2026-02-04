@@ -69,7 +69,7 @@ impl Default for ConfirmarCategorias {
 }
 
 fn encontrar_categoria() -> (Vec<Lancamento>, Vec<Lancamento>) {
-    let regras = Regra::listar();
+    let regras = Regra::listar_full();
     let mut encontrados: Vec<Lancamento> = Vec::new();
     let mut nao_encontrado: Vec<Lancamento> = Vec::new();
 
