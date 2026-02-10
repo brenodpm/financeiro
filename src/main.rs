@@ -12,7 +12,7 @@ use color_eyre::eyre::Result;
 use dto::{Banco, Divida, Lancamento};
 use std::{fs::create_dir_all, path::PathBuf, sync::LazyLock};
 
-use crate::dto::{OptionalLazyFn, Regra};
+use crate::dto::{Categoria, LazyFn, OptionalLazyFn, Regra};
 
 static HOME_DIR: LazyLock<PathBuf> = LazyLock::new(|| get_home_dir_path());
 
@@ -52,36 +52,12 @@ fn main() {
 
     preparar_diretorios();
     importar();
+    
     Divida::atualizar();
-    atualizar_regras();
+    Regra::garantir_integridade();
 
     start_tui().unwrap_or_else(|e| log::error!("Falha ao executar o terminal: {e:?}"));
     log::info!("Finalizado");
-}
-
-fn atualizar_regras() {
-    let atual = Regra::listar();
-    let lancamentos = Lancamento::lancamentos_listar();
-
-    let mut manter: Vec<Regra> = Vec::new();
-    atual.iter().for_each(|r| {
-        lancamentos
-            .iter()
-            .any(|l| l.regra.id() == r.id)
-            .then(|| {
-                if !manter.iter().any(|m| m.id == r.id || r.regex == m.regex) {
-                    manter.push(r.clone());
-                }
-            });
-    });
-
-    Regra::salvar_lista(&manter);
-    if manter.len() != atual.len() {
-        log::info!(
-            "Regras atualizadas: {} removidas",
-            atual.len() - manter.len()
-        );
-    }
 }
 
 fn importar() {

@@ -14,7 +14,7 @@ pub fn config() {
 
     let logfile = FileAppender::builder()
         .encoder(Box::new(PatternEncoder::new(
-            format!("{{l}} - {} - {{m}}\n", env!("CARGO_PKG_VERSION")).as_str(),
+            format!("{{d(%H:%M:%S%.3f)}} - {{l}} - {} - {{m}}\n", env!("CARGO_PKG_VERSION")).as_str(),
         )))
         .build(path)
         .unwrap();
