@@ -89,7 +89,7 @@ fn preencher_grupos(
 ) {
     let agrupamento = gerar_agrupamento(categoria);
     let mut grupo_pai = String::new();
-    let mut grupo = "SaídasS >> {}", nomes".to_string();
+    let mut grupo = "Saídas".to_string();
 
     for i in 0..agrupamento.len() {
         grupo_somar_lancamento(mapa, format!("{}{}",grupo_pai.clone(), grupo.clone()) , agrupamento[i].clone(), valor);
