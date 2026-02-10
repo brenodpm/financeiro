@@ -1,12 +1,10 @@
-use std::f32::consts::E;
-
 use color_eyre::Result;
 use ratatui::{
     buffer::Buffer,
     layout::{Constraint, Layout, Rect},
     style::Stylize,
     symbols,
-    text::Line,
+    text::{Line, ToLine, ToSpan, ToText},
     widgets::{
         Block, Borders, HighlightSpacing, List, ListItem, ListState, StatefulWidget, Widget,
     },
@@ -14,10 +12,13 @@ use ratatui::{
 };
 
 use crate::{
-    calc::{self, calcular_gasto_por_categoria, calcular_gasto_por_conta_d30, calcular_resumo},
+    calc::{
+        self, calcular_gasto_por_categoria_ano, calcular_gasto_por_categoria_d30,
+        calcular_gasto_por_conta_d30, calcular_resumo,
+    },
     dto::{
-        Categoria, Configuracao, DashDivida, DashGastoPor, DashGastoPorCategoria, DashResumo,
-        Divida, Lancamento, OptionalLazy, ParcelaDivida,
+        Categoria, CategoriaMapa, Configuracao, DashDivida, DashGastoPor, DashGastoPorCategoria,
+        DashGastoPorCategoriaAno, DashResumo, Divida, Lancamento, OptionalLazy, ParcelaDivida,
     },
     estilo::{
         alternate_colors, principal_comandos, principal_titulo, GERAL_BG, GERAL_TEXT_FG,
@@ -204,9 +205,53 @@ impl GeradorDash {
     }
 
     fn calcular_gasto_por_categoria(&mut self) {
-        DashGastoPorCategoria::salvar(calcular_gasto_por_categoria(
-            self.categorias.clone(),
+        let ordem = self.gerar_ordem_categorias();
+
+        DashGastoPorCategoria::salvar(calcular_gasto_por_categoria_d30(
+            ordem,
+            self.lista_lancamentos.clone(),
+        ));
+
+        DashGastoPorCategoriaAno::salvar(calcular_gasto_por_categoria_ano(
             self.lista_lancamentos.clone(),
         ));
     }
+
+    fn gerar_ordem_categorias(&self) -> Vec<String> {
+        let mut atuais = vec![String::new(), String::new(), String::new(), String::new()];
+
+        let mut resp: Vec<String> = Vec::new();
+
+        self.categorias.iter().for_each(|c| {
+            let nomes = split_categoria_nome(c);
+            for i in 0..nomes.len() {
+                if atuais[i] != nomes[i] {
+                    if i == 0 {
+                        resp.insert(
+                            0,
+                            format!("Saídas >> {}", nomes[i].clone()),
+                        );
+                    } else {
+                        resp.insert(
+                            0,
+                            format!("{} >> {}", nomes[i - 1].clone(), nomes[i].clone()),
+                        );
+                    }
+                    atuais[i] = nomes[i].clone();
+                }
+            }
+        });
+        resp.push("Tipo Lancamento".to_string());
+
+        resp
+    }
+}
+
+fn split_categoria_nome(cat: &Categoria) -> Vec<String> {
+    let cat_str = cat.to_string();
+    let nomes = cat_str
+        .split(";")
+        .map(|s| s.trim().to_string())
+        .collect::<Vec<_>>();
+    nomes
 }

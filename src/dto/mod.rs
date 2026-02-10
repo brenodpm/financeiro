@@ -17,7 +17,7 @@ mod tipo_fluxo_dto;
 mod dash;
 
 pub use banco_dto::Banco;
-pub use categoria_dto::Categoria;
+pub use categoria_dto::{Categoria, CategoriaMap, CategoriaMapa};
 pub use configuracao_dto::Configuracao;
 pub use conta_dto::Conta;
 pub use divida_dto::Divida;

@@ -1,9 +1,15 @@
-use std::fmt::{self, Formatter, Result};
+use std::{
+    collections::HashMap,
+    fmt::{self, Formatter, Result},
+};
 
 use serde::{Deserialize, Serialize};
 
+use crate::dto::TipoDespesa;
+
 use super::{
-    gerar_sha1, lazy::LazyFn, optional_lazy::OptionalLazyFn, GrupoDespesa, Lazy, OptionalLazy, TipoFluxo, Unico
+    gerar_sha1, lazy::LazyFn, optional_lazy::OptionalLazyFn, GrupoDespesa, Lazy, OptionalLazy,
+    TipoFluxo, Unico,
 };
 
 #[derive(Debug, Clone, Eq, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
@@ -168,7 +174,10 @@ impl Categoria {
 }
 
 fn despesa(array: &mut Vec<Categoria>, nome: &str, grupo: &str, sub_grupo: &str) {
-    array.push(Categoria::new(nome, TipoFluxo::Despesa(GrupoDespesa::new(grupo, sub_grupo))));
+    array.push(Categoria::new(
+        nome,
+        TipoFluxo::Despesa(GrupoDespesa::new(grupo, sub_grupo)),
+    ));
 }
 
 fn receita(array: &mut Vec<Categoria>, nome: &str, grupo: &str) {
@@ -185,4 +194,44 @@ fn retorno(array: &mut Vec<Categoria>, nome: &str) {
 
 fn transferencias(array: &mut Vec<Categoria>, nome: &str) {
     array.push(Categoria::new(nome, TipoFluxo::Transferencias));
+}
+
+#[derive(Clone)]
+pub struct CategoriaMap(HashMap<String, CategoriaMap>);
+impl CategoriaMap {
+    pub fn keys(&self) -> impl Iterator<Item = &String> {
+        self.0.keys()
+    }
+
+    pub fn push(&mut self, array: Vec<&str>) {
+        if !array[0].is_empty() {
+            if !self.0.contains_key(array[0]) {
+                self.0
+                    .insert(array[0].to_string(), CategoriaMap(HashMap::new()));
+            }
+            if array.len() > 1 {
+                if let Some(v) = self.0.get_mut(array[0]) {
+                    v.push(array[1..].to_vec());
+                }
+            }
+        }
+    }
+}
+
+pub trait CategoriaMapa {
+    fn agrupar(&self) -> CategoriaMap;
+}
+
+impl CategoriaMapa for Vec<Categoria> {
+    fn agrupar(&self) -> CategoriaMap {
+        let mut mapa = CategoriaMap(HashMap::new());
+
+        for cat in self {
+            let cat_str = cat.to_string();
+            let array = cat_str.split(";").collect::<Vec<_>>();
+            mapa.push(array);
+        }
+
+        mapa
+    }
 }

@@ -154,7 +154,16 @@ body {
   min-height: 0;
 }
 
-
+.divisor{
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  overflow: hidden;
+  flex: 0 0 auto;
+  width: 100%;
+  align-self: flex-start;
+}
 
 /* painel de chart */
 .chart {

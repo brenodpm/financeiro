@@ -1,6 +1,8 @@
 use include_dir::{include_dir, Dir};
 
-use crate::dto::{DashDivida, DashGastoPor, DashGastoPorCategoria, DashResumo};
+use crate::dto::{
+    DashDivida, DashGastoPor, DashGastoPorCategoria, DashGastoPorCategoriaAno, DashResumo,
+};
 
 use super::file_repy::{arq_deletar_dir, arq_escrever};
 
@@ -22,6 +24,15 @@ impl DashGastoPorCategoria {
         match serde_json::to_string_pretty(&gastos) {
             Ok(json) => escrever("gasto_por_categoria", json),
             Err(erro) => log::error!("Erro ao salvar os gastos por categoria: {}", erro),
+        };
+    }
+}
+
+impl DashGastoPorCategoriaAno {
+    pub fn salvar(gastos: Vec<DashGastoPorCategoriaAno>) {
+        match serde_json::to_string_pretty(&gastos) {
+            Ok(json) => escrever("gasto_por_categoria_ano", json),
+            Err(erro) => log::error!("Erro ao salvar os gastos por categoria anuais: {}", erro),
         };
     }
 }

@@ -26,6 +26,6 @@ impl GrupoDespesa {
 
 impl Display for GrupoDespesa {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        f.write_fmt(format_args!("{:?}: {}", self.tipo, self.grupo))
+        f.write_fmt(format_args!("{:?}; {}", self.tipo, self.grupo))
     }
 }

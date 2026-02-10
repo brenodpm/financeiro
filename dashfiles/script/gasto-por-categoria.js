@@ -5,7 +5,7 @@
     }
 
     ready(function () {
-        const container = document.getElementById("dividas");
+        const container = document.getElementById("lb-gastos-30d");
 
         gasto_por_categoria.forEach(categoria =>{
             let nome = categoria.grupo.replace(' ', '_')+"_chart";
@@ -27,12 +27,12 @@
             chart.responsive.enabled = true;
 
             var title = chart.titles.create();
-            title.text = categoria.grupo + " D30";
+            title.text = categoria.grupo;
             title.fontSize = 16;
             title.fill = am4core.color("#e1cdcbff");
             title.marginBottom = -5;
 
-            chart.data = categoria.valores;
+            chart.data = categoria.valores.sort((a, b) => b.valor - a.valor);
 
             var pieSeries = chart.series.push(new am4charts.PieSeries());
             pieSeries.dataFields.value = "valor";
@@ -46,7 +46,7 @@
             chart.legend.position = "right";
             chart.legend.labels.template.fill = am4core.color("#cbd5e1");
             chart.legend.valueLabels.template.fill = am4core.color("#cbd5e1");
-            chart.legend.labels.template.text = "{nome}: R$ {valor}";
+            chart.legend.labels.template.text = "{nome}";
             chart.legend.labels.template.fontSize = 10;
             chart.legend.valueLabels.template.fontSize = 10;
         });
