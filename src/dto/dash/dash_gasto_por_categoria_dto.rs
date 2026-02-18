@@ -13,9 +13,9 @@ impl DashGastoPorCategoria {
             valores: Vec::new(),
         }
     }
-    pub fn add(&mut self, nome: &str, valor: f64) {
+    pub fn add(&mut self, nome: String, valor: f64) {
         self.valores.push(DashGastoPor {
-            nome: nome.to_string(),
+            nome: nome,
             valor,
         } );
     }

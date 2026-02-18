@@ -12,7 +12,7 @@ use color_eyre::eyre::Result;
 use dto::{Banco, Divida, Lancamento};
 use std::{fs::create_dir_all, path::PathBuf, sync::LazyLock};
 
-use crate::dto::{Categoria, LazyFn, OptionalLazyFn, Regra};
+use crate::dto::Regra;
 
 static HOME_DIR: LazyLock<PathBuf> = LazyLock::new(|| get_home_dir_path());
 

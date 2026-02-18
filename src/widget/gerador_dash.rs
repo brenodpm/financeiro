@@ -4,7 +4,7 @@ use ratatui::{
     layout::{Constraint, Layout, Rect},
     style::Stylize,
     symbols,
-    text::{Line, ToLine, ToSpan, ToText},
+    text::Line,
     widgets::{
         Block, Borders, HighlightSpacing, List, ListItem, ListState, StatefulWidget, Widget,
     },
@@ -17,7 +17,7 @@ use crate::{
         calcular_gasto_por_conta_d30, calcular_resumo,
     },
     dto::{
-        Categoria, CategoriaMapa, Configuracao, DashDivida, DashGastoPor, DashGastoPorCategoria,
+        Categoria, Configuracao, DashDivida, DashGastoPor, DashGastoPorCategoria,
         DashGastoPorCategoriaAno, DashResumo, Divida, Lancamento, OptionalLazy, ParcelaDivida,
     },
     estilo::{
@@ -208,11 +208,12 @@ impl GeradorDash {
         let ordem = self.gerar_ordem_categorias();
 
         DashGastoPorCategoria::salvar(calcular_gasto_por_categoria_d30(
-            ordem,
+            &ordem,
             self.lista_lancamentos.clone(),
         ));
 
         DashGastoPorCategoriaAno::salvar(calcular_gasto_por_categoria_ano(
+            &ordem,
             self.lista_lancamentos.clone(),
         ));
     }
@@ -227,10 +228,7 @@ impl GeradorDash {
             for i in 0..nomes.len() {
                 if atuais[i] != nomes[i] {
                     if i == 0 {
-                        resp.insert(
-                            0,
-                            format!("Saídas >> {}", nomes[i].clone()),
-                        );
+                        resp.insert(0, format!("Saídas >> {}", nomes[i].clone()));
                     } else {
                         resp.insert(
                             0,

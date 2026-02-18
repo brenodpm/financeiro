@@ -1,9 +1,5 @@
 use std::collections::HashMap;
 
-const MONTHS: [&str; 12] = [
-    "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez",
-];
-
 #[derive(serde::Serialize, serde::Deserialize, Clone)]
 pub struct DashGastoPorCategoriaAno {
     pub grupo: String,
@@ -18,10 +14,10 @@ impl DashGastoPorCategoriaAno {
         }
     }
 
-    pub fn add(&mut self, cat: String, base: Vec<String>, meses: HashMap<String, f64>) {
+    pub fn add(&mut self, cat: String, base: &Vec<String>, meses: HashMap<String, f64>) {
         if !self.valores.contains_key(&cat) {
             self.valores
-                .insert(cat.clone(), DashGastoPorCategoriaAnoValores::new(base));
+                .insert(cat.clone(), DashGastoPorCategoriaAnoValores::new(base.clone()));
         };
         if let Some(valores) = self.valores.get_mut(&cat) {
             valores.somar(meses);

@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::format};
+use std::collections::HashMap;
 
 use crate::{
     calc::calc_lancamentos_filtros::Lancamentos,
@@ -6,25 +6,25 @@ use crate::{
 };
 
 pub fn calcular_gasto_por_categoria_d30(
-    ordem: Vec<String>,
+    ordem: &Vec<String>,
     mut lancamentos: Vec<Lancamento>,
 ) -> Vec<DashGastoPorCategoria> {
     lancamentos = lancamentos.ultimos_dias(30);
     let mut mapa: HashMap<String, HashMap<String, f64>> = HashMap::new();
 
-    agrupar_lancamentos_em_grupos(&mut mapa, lancamentos);
+    agrupar_lancamentos(&mut mapa, lancamentos);
 
     gerar_graficos(ordem, mapa)
 }
 
 fn gerar_graficos(
-    ordem: Vec<String>,
+    ordem: &Vec<String>,
     mapa: HashMap<String, HashMap<String, f64>>,
 ) -> Vec<DashGastoPorCategoria> {
     let mut resultados: Vec<DashGastoPorCategoria> = Vec::new();
 
     for nome in ordem {
-        if let Some(valores) = mapa.get(&nome) {
+        if let Some(valores) = mapa.get(nome) {
             se_mais_de_1_item_criar_grafico(&mut resultados, nome, valores);
         }
     }
@@ -34,7 +34,7 @@ fn gerar_graficos(
 
 fn se_mais_de_1_item_criar_grafico(
     resultados: &mut Vec<DashGastoPorCategoria>,
-    nome: String,
+    nome: &String,
     valores: &HashMap<String, f64>,
 ) {
     if valores.len() > 1 {
@@ -44,7 +44,7 @@ fn se_mais_de_1_item_criar_grafico(
 
 fn criar_novo_grafico(
     resultados: &mut Vec<DashGastoPorCategoria>,
-    nome: String,
+    nome: &String,
     valores: &HashMap<String, f64>,
 ) {
     let mut item = DashGastoPorCategoria::new(nome.as_str());
@@ -57,11 +57,11 @@ fn grafico_preencher_valores_por_categira(
     item: &mut DashGastoPorCategoria,
 ) {
     for (cat, valor) in valores {
-        item.add(cat.as_str(), valor.clone());
+        item.add(cat.clone(), valor.clone());
     }
 }
 
-fn agrupar_lancamentos_em_grupos(
+fn agrupar_lancamentos(
     mapa: &mut HashMap<String, HashMap<String, f64>>,
     lancamentos: Vec<Lancamento>,
 ) {
@@ -69,14 +69,11 @@ fn agrupar_lancamentos_em_grupos(
         .iter()
         .filter(|l| l.valor < 0.0)
         .for_each(|lancamento| {
-            agrupar_lancamento_em_grupos(mapa, lancamento);
+            agrupar_lancamento(mapa, lancamento);
         });
 }
 
-fn agrupar_lancamento_em_grupos(
-    mapa: &mut HashMap<String, HashMap<String, f64>>,
-    lancamento: &Lancamento,
-) {
+fn agrupar_lancamento(mapa: &mut HashMap<String, HashMap<String, f64>>, lancamento: &Lancamento) {
     if let Some(cat) = lancamento.categoria.some() {
         preencher_grupos(mapa, cat.clone(), lancamento.valor);
     }
@@ -92,7 +89,12 @@ fn preencher_grupos(
     let mut grupo = "Saídas".to_string();
 
     for i in 0..agrupamento.len() {
-        grupo_somar_lancamento(mapa, format!("{}{}",grupo_pai.clone(), grupo.clone()) , agrupamento[i].clone(), valor);
+        grupo_somar_lancamento(
+            mapa,
+            format!("{}{}", grupo_pai.clone(), grupo.clone()),
+            agrupamento[i].clone(),
+            valor,
+        );
         grupo_pai = format!("{} >> ", grupo.clone());
         grupo = agrupamento[i].clone();
     }
@@ -109,11 +111,11 @@ fn gerar_agrupamento(cat: Categoria) -> Vec<String> {
 
 fn grupo_somar_lancamento(
     mapa: &mut HashMap<String, HashMap<String, f64>>,
-    grupo: String,
+    nome_grupo: String,
     categoria: String,
     valor: f64,
 ) {
-    mapa.entry(grupo)
+    mapa.entry(nome_grupo)
         .or_insert_with(HashMap::new)
         .entry(categoria)
         .and_modify(|v| *v -= valor)

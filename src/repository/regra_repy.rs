@@ -35,7 +35,7 @@ impl Regra {
         if json.is_empty() {
             json = "[]".to_string();
         }
-        let mut resp: Vec<Regra> = match serde_json::from_str(&json) {
+        let resp: Vec<Regra> = match serde_json::from_str(&json) {
             Ok(vec) => vec,
             Err(erro) => {
                 log::error!("Erro ao ler regras: {}", erro);
