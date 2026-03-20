@@ -120,15 +120,16 @@ fn preencher_grupos(
     let mut grupo = "Saídas".to_string();
 
     for i in 0..agrupamento.len() {
+        let nome_grupo = format!("{}{}", grupo_pai, grupo);
         grupo_somar_lancamento(
             mapa,
-            format!("{}{}", grupo_pai.clone(), grupo.clone()),
+            nome_grupo.clone(),
             agrupamento[i].to_string(),
             mes.clone(),
             valor,
         );
 
-        grupo_pai = format!("{} >> ", grupo.clone());
+        grupo_pai = format!("{} >> ", grupo);
         grupo = agrupamento[i].clone();
     }
 }
@@ -137,7 +138,7 @@ fn gerar_agrupamento(cat: Categoria) -> Vec<String> {
     let cat_str = cat.to_string();
     let agrupamento = cat_str
         .split(";")
-        .map(|s| s.to_string())
+        .map(|s| s.trim().to_string())
         .collect::<Vec<_>>();
     agrupamento
 }
