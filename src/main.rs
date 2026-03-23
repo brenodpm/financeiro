@@ -51,6 +51,7 @@ fn main() {
     log::info!("Início");
 
     preparar_diretorios();
+    repository::file_repy::arq_limpar_tmp(".financeiro");
     importar();
     
     Divida::atualizar();

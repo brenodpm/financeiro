@@ -1,5 +1,5 @@
 use std::{
-    fs::{create_dir_all, remove_dir_all, write, File},
+    fs::{create_dir_all, remove_dir_all, rename, write, File},
     io::{BufRead, BufReader, Lines, Read},
     iter::Flatten,
     path::{Path, PathBuf},
@@ -44,7 +44,24 @@ pub fn arq_escrever(dir: &str, file: &str, texto: String) {
     path.push(&file);
     checar_arq(&path);
 
-    write(path, texto).expect("Falha ao escrever no arquivo");
+    let mut tmp = path.clone();
+    tmp.set_extension("json.tmp");
+
+    write(&tmp, texto).expect("Falha ao escrever no arquivo temporário");
+    rename(&tmp, &path).expect("Falha ao renomear arquivo temporário");
+}
+
+pub fn arq_limpar_tmp(dir: &str) {
+    let mut path = get_home_dir();
+    path.push(&dir);
+    if let Ok(entries) = std::fs::read_dir(&path) {
+        entries.flatten().for_each(|e| {
+            let p = e.path();
+            if p.extension().map_or(false, |ext| ext == "tmp") {
+                let _ = std::fs::remove_file(p);
+            }
+        });
+    }
 }
 
 pub fn arq_deletar_dir(dir: &str) {

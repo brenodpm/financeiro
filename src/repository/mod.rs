@@ -2,7 +2,7 @@ mod banco_repy;
 mod categoria_repy;
 mod dash_repy;
 mod divida_repy;
-mod file_repy;
+pub mod file_repy;
 mod lancamento_repy;
 mod meta_repy;
 mod ofx_repy;
