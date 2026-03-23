@@ -56,7 +56,13 @@ fn criar_novo_grafico(
 ) {
     let mut item = DashGastoPorCategoriaAno::new(nome.as_str());
     grafico_preencher_valores_por_categira(base, valores, &mut item);
-    resultados.push(item);
+    item.valores
+        .iter_mut()
+        .for_each(|v| v.meses.retain(|_, val| *val != 0.0));
+    item.valores.retain(|v| !v.meses.is_empty());
+    if !item.valores.is_empty() {
+        resultados.push(item);
+    }
 }
 
 fn grafico_preencher_valores_por_categira(

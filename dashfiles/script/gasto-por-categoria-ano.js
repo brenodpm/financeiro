@@ -33,7 +33,7 @@
             // meses são todas as chaves exceto "categoria"
             var meses = Object.keys(grafico.valores[0]).filter(k => k !== "categoria").sort();
 
-            chart.data = grafico.valores;
+            chart.data = grafico.valores.slice().sort((a, b) => b.categoria.localeCompare(a.categoria));
 
             var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
             categoryAxis.dataFields.category = "categoria";
