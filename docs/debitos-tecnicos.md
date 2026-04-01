@@ -10,9 +10,8 @@
 ## Gerais
 
 ### Persistência
-- 🔴 Sem backup antes de sobrescrever JSON — corrupção de dados se o processo morrer durante escrita
-- 🔴 `arq_escrever` sobrescreve diretamente sem arquivo temporário + rename atômico
-- 🟡 Leitura completa do arquivo a cada operação (ex: `lancamentos_salvar` lê tudo, modifica, reescreve) — escala mal
+- 🔴 Sem backup antes de sobrescrever JSON — corrupção de dados se o processo morrer durante escrita: escrita atômica via `.tmp` + rename implementada; falta avaliar cenários com transações multi-arquivo
+- ~~🔴 `arq_escrever` sobrescreve diretamente sem arquivo temporário + rename atômico~~ — resolvido
 - 🔵 Migrar toda persistência para SQLite (`rusqlite`) — substituir `file_repy`, todos os `_repy` e o padrão `OptionalLazy<T>`/`Lazy<T>` por foreign keys reais
 
 ### Camada DTO

@@ -1,10 +1,12 @@
 use include_dir::{include_dir, Dir};
+use std::fs;
 
 use crate::dto::{
-    DashDivida, DashGastoPor, DashGastoPorCategoria, DashGastoPorCategoriaAno, DashResumo,
+    DashDivida, DashGastoPor, DashGastoPorCategoria, DashGastoPorCategoriaAno, DashResumo, Orientacao,
 };
 
-use super::file_repy::{arq_deletar_dir, arq_escrever};
+use super::file_repy::arq_escrever;
+use crate::get_home_dir;
 
 static PROJECT_DIR: Dir = include_dir!("$CARGO_MANIFEST_DIR/dashfiles");
 
@@ -55,8 +57,16 @@ impl DashDivida {
     }
 }
 
+impl Orientacao {
+    pub fn salvar(orientacoes: &Vec<Orientacao>) {
+        match serde_json::to_string_pretty(orientacoes) {
+            Ok(json) => escrever("orientacoes", json),
+            Err(erro) => log::error!("Erro ao salvar as orientações: {}", erro),
+        };
+    }
+}
+
 pub fn atualizar_base() {
-    arq_deletar_dir(FIN);
     transferir_diretorio(&PROJECT_DIR, "");
 }
 
@@ -72,21 +82,21 @@ fn escrever(nome: &str, conteudo: String) {
 fn transferir_diretorio(dir: &Dir, destino: &str) {
     for file in dir.files() {
         if let Some(content) = file.contents_utf8() {
-            match file.path().file_name() {
-                Some(file) => arq_escrever(
-                    &(FIN.to_string() + destino),
-                    file.to_str().unwrap(),
-                    content.to_string(),
-                ),
-                None => log::error!("Erro ao transferir o arquivo {}", file.path().display()),
+            if let Some(nome) = file.path().file_name() {
+                let dir_destino = FIN.to_string() + destino;
+                let mut path = get_home_dir();
+                path.push(&dir_destino);
+                path.push(nome);
+                if fs::read_to_string(&path).unwrap_or_default() != content {
+                    arq_escrever(&dir_destino, nome.to_str().unwrap(), content.to_string());
+                }
             }
         }
     }
 
-    for dir in dir.dirs() {
-        match dir.path().to_str() {
-            Some(destino) => transferir_diretorio(dir, destino),
-            None => log::error!("Erro ao transferir o diretório {}", dir.path().display()),
-        };
+    for subdir in dir.dirs() {
+        if let Some(d) = subdir.path().to_str() {
+            transferir_diretorio(subdir, d);
+        }
     }
 }

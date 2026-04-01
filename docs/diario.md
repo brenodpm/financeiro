@@ -46,3 +46,22 @@ Implementado o gráfico de Stacked Bar horizontal (amCharts v4) para gastos por 
 - `dashfiles/index.html`: adicionado divisor `lb-gastos-ano`, scripts de data e script do novo gráfico
 
 **Versão estável gerada após estas correções. Próximo foco: débitos técnicos.**
+
+## 2026-03-31
+
+### Orientações financeiras no dashboard (estrutura base concluída)
+
+Implementada a estrutura para orientações financeiras exibidas como painel lateral direito no dashboard.
+
+**Mudanças realizadas:**
+- `dto/dash/orientacao_dto.rs`: struct `Orientacao { prioridade: u8, icone: String, texto: String }`
+- `calc/calc_orientacoes.rs`: função `ordenar(&mut Vec<Orientacao>)` com 2 testes TDD (ordenação e vetor vazio)
+- `widget/gerador_dash.rs`: nova `Etapa::Orientacoes` (após `Dividas`), campo `orientacoes: Vec<Orientacao>` no struct, função `gerar_orientacoes()` que ordena e salva
+- `repository/dash_repy.rs`: `Orientacao::salvar()` — mesmo padrão dos outros, escreve `data/orientacoes.js`
+- `dashfiles/script/orientacoes.js`: renderiza os cards ordenados por prioridade com cor de borda por urgência (≤20 vermelho, ≤40 laranja, resto azul)
+- `dashfiles/style.css`: estilos `.orientacoes-panel`, `.orientacao-item`, `.orientacao-icone`, `.orientacao-texto`
+- `dashfiles/index.html`: `<aside class="orientacoes-panel">` ao lado do `.workspace`
+
+**Decisão de design:** cada `calc/` recebe `&mut Vec<Orientacao>` e empurra orientações durante o próprio processamento — sem fase separada. A ordenação final fica em `gerar_orientacoes()` no `GeradorDash`.
+
+**Próximo passo:** revisar cada `calc/` para adicionar orientações reais (remover as fictícias de `gerar_orientacoes`).

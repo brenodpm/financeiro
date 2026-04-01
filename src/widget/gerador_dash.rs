@@ -14,11 +14,11 @@ use ratatui::{
 use crate::{
     calc::{
         self, calcular_gasto_por_categoria_ano, calcular_gasto_por_categoria_d30,
-        calcular_gasto_por_conta_d30, calcular_resumo,
+        calcular_gasto_por_conta_d30, calcular_resumo, ordenar_orientacoes,
     },
     dto::{
         Categoria, Configuracao, DashDivida, DashGastoPor, DashGastoPorCategoria,
-        DashGastoPorCategoriaAno, DashResumo, Divida, Lancamento, OptionalLazy, ParcelaDivida,
+        DashGastoPorCategoriaAno, DashResumo, Divida, Lancamento, OptionalLazy, Orientacao, ParcelaDivida,
     },
     estilo::{
         alternate_colors, principal_comandos, principal_titulo, GERAL_BG, GERAL_TEXT_FG,
@@ -35,6 +35,7 @@ enum Etapa {
     GastoPorConta,
     GastoPorCategoria,
     Dividas,
+    Orientacoes,
     Finalizado,
     Sair,
 }
@@ -48,6 +49,7 @@ impl Etapa {
             Etapa::GastoPorConta => "Gasto por conta".to_string(),
             Etapa::GastoPorCategoria => "Gasto por categoria".to_string(),
             Etapa::Dividas => "Dívidas".to_string(),
+            Etapa::Orientacoes => "Orientações".to_string(),
             Etapa::Finalizado => "Finalizado".to_string(),
             Etapa::Sair => "Sair".to_string(),
         }
@@ -63,6 +65,7 @@ pub struct GeradorDash {
     lista_dividas: Vec<ParcelaDivida>,
     lista_lancamentos: Vec<Lancamento>,
     categorias: Vec<Categoria>,
+    orientacoes: Vec<Orientacao>,
 }
 
 impl Widget for &mut GeradorDash {
@@ -101,6 +104,7 @@ impl GeradorDash {
                 Etapa::GastoPorConta,
                 Etapa::GastoPorCategoria,
                 Etapa::Dividas,
+                Etapa::Orientacoes,
                 Etapa::Finalizado,
                 Etapa::Sair,
             ],
@@ -111,6 +115,7 @@ impl GeradorDash {
             lista_dividas: Vec::new(),
             lista_lancamentos: lancamentos,
             categorias: Categoria::listar(),
+            orientacoes: Vec::new(),
         }
     }
 
@@ -135,6 +140,7 @@ impl GeradorDash {
                 Etapa::Base => self.atualizar_base(),
                 Etapa::Resumo => self.resumo_valores(),
                 Etapa::Dividas => self.calcular_dividas(),
+                Etapa::Orientacoes => self.gerar_orientacoes(),
                 Etapa::GastoPorConta => self.calcular_gasto_por_conta(),
                 Etapa::GastoPorCategoria => self.calcular_gasto_por_categoria(),
                 Etapa::Finalizado => {
@@ -198,6 +204,16 @@ impl GeradorDash {
             self.lista_dividas.clone(),
             self.config.endividamento_max,
         ));
+    }
+
+    fn gerar_orientacoes(&mut self) {
+        // TODO: remover orientações fictícias
+        self.orientacoes.push(Orientacao { prioridade: 10, icone: "🚨".to_string(), texto: "Suas saídas superaram as entradas neste mês".to_string() });
+        self.orientacoes.push(Orientacao { prioridade: 30, icone: "⚠️".to_string(), texto: "Gasto com Alimentação acima da média dos últimos 3 meses".to_string() });
+        self.orientacoes.push(Orientacao { prioridade: 50, icone: "💡".to_string(), texto: "Você tem parcelas vencendo nos próximos 7 dias".to_string() });
+
+        ordenar_orientacoes(&mut self.orientacoes);
+        Orientacao::salvar(&self.orientacoes);
     }
 
     fn calcular_gasto_por_conta(&mut self) {

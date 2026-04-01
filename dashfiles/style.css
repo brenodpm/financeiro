@@ -197,6 +197,50 @@ body {
   height: 100%; /* preenche o painel .chart com altura fixa */
 }
 
+/* painel de orientações */
+.orientacoes-panel {
+  width: 280px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.orientacoes-titulo {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0 4px 4px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.orientacao-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-left: 3px solid var(--orientacao-cor, var(--muted));
+  border-radius: 8px;
+  padding: 10px 12px;
+  box-shadow: 0 4px 12px rgba(2,6,23,0.4);
+}
+
+.orientacao-icone {
+  font-size: 1.2rem;
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+
+.orientacao-texto {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: #cbd5e1;
+}
+
 /* responsivo */
 @media (max-width:980px) {
   .charts-grid {
