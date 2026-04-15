@@ -12,4 +12,3 @@ pub use calc_dividas::calcular_dividas;
 pub use calc_gasto_por_categoria_mes::calcular_gasto_por_categoria_d30;
 pub use calc_gasto_por_categoria_ano::calcular_gasto_por_categoria_ano;
 pub use calc_orientacoes::ordenar as ordenar_orientacoes;
-pub use calc_orientacoes::prioridade_por_desvio;

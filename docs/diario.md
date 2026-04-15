@@ -65,3 +65,5 @@ Implementada a estrutura para orientações financeiras exibidas como painel lat
 **Decisão de design:** cada `calc/` recebe `&mut Vec<Orientacao>` e empurra orientações durante o próprio processamento — sem fase separada. A ordenação final fica em `gerar_orientacoes()` no `GeradorDash`.
 
 **Próximo passo:** revisar cada `calc/` para adicionar orientações reais (remover as fictícias de `gerar_orientacoes`).
+
+**Decisão de processo:** toda vez que um cálculo de gráfico for criado ou modificado, adicionar as orientações pertinentes no mesmo momento — nunca deixar para depois.

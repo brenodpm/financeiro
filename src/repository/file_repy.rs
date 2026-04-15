@@ -1,5 +1,5 @@
 use std::{
-    fs::{create_dir_all, remove_dir_all, rename, write, File},
+    fs::{create_dir_all, rename, write, File},
     io::{BufRead, BufReader, Lines, Read},
     iter::Flatten,
     path::{Path, PathBuf},
@@ -61,18 +61,6 @@ pub fn arq_limpar_tmp(dir: &str) {
                 let _ = std::fs::remove_file(p);
             }
         });
-    }
-}
-
-pub fn arq_deletar_dir(dir: &str) {
-    let mut path = get_home_dir();
-    path.push(&dir);
-
-    if Path::new(&path).exists() {
-        match remove_dir_all(&path) {
-            Ok(_) => {}
-            Err(erro) => log::error!("Erro ao deletar diretório: {}", erro),
-        }
     }
 }
 
