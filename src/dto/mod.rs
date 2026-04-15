@@ -1,4 +1,5 @@
 mod banco_dto;
+mod csv_layout_dto;
 mod categoria_dto;
 mod configuracao_dto;
 mod conta_dto;
@@ -17,6 +18,7 @@ mod tipo_fluxo_dto;
 mod dash;
 
 pub use banco_dto::Banco;
+pub use csv_layout_dto::CsvLayout;
 pub use categoria_dto::{Categoria};
 pub use configuracao_dto::Configuracao;
 pub use conta_dto::Conta;

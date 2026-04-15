@@ -70,7 +70,8 @@ fn importar() {
 
 fn start_tui() -> Result<()> {
     color_eyre::install()?;
-    let terminal = ratatui::init();
+    let mut terminal = ratatui::init();
+    widget::ImportarCsv::importar(&mut terminal);
     let app_result = App::default().run(terminal);
     ratatui::restore();
     app_result

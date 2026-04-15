@@ -19,9 +19,9 @@ pub fn arq_externo_ler(arquivo: &str) -> Vec<String> {
     let encoding = Encoding::for_label(encoding_name.as_bytes()).expect("Failed to get encoding");
 
     let (cow, _, _) = encoding.decode(&buffer);
-    cow.to_string()
-        .lines()
-        .map(|s| s.trim().replace(";", ","))
+    cow.replace("\r\n", "\n").replace('\r', "\n")
+        .split('\n')
+        .map(|s| s.trim().to_string())
         .collect()
 }
 

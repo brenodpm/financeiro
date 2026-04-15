@@ -1,5 +1,7 @@
-mod banco_repy;
+pub mod banco_repy;
 mod categoria_repy;
+pub mod csv_layout_repy;
+pub mod csv_repy;
 mod dash_repy;
 mod divida_repy;
 pub mod file_repy;

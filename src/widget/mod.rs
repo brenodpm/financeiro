@@ -1,5 +1,7 @@
 mod categorizador_wgt;
 mod confirmar_categorizacao_wgt;
+mod csv_layout_wgt;
+mod importar_csv_wgt;
 mod divida_wgt;
 mod lista_dividas_wgt;
 mod menu_wgt;
@@ -14,6 +16,7 @@ mod alerta_wgt;
 mod contracheque_wgt;
 
 pub use categorizador_wgt::Categorizador;
+pub use importar_csv_wgt::ImportarCsv;
 pub use lista_dividas_wgt::ListaDividas;
 pub use menu_wgt::Menu;
 pub use selecionar_categoria_wgt::SelecionarCategoria;
