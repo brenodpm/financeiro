@@ -2,8 +2,8 @@ use color_eyre::eyre::Result;
 use ratatui::DefaultTerminal;
 
 use crate::widget::{
-    Categorizador, ContraCheque, EditarConfiguracoes, GeradorDash, ListaCategoria, ListaDividas,
-    ListaMeta, Menu,
+    Categorizador, ContraCheque, EditarBancos, EditarConfiguracoes, GeradorDash, ListaCategoria,
+    ListaDividas, ListaMeta, Menu,
 };
 
 #[derive(Clone)]
@@ -16,6 +16,7 @@ pub enum Etapa {
     Dash,
     Configuracoes,
     Categorias,
+    Bancos,
     Sair,
 }
 
@@ -42,6 +43,7 @@ impl App {
                 ("Gerar Gráfico".to_string(), Etapa::Dash),
                 ("Configurações".to_string(), Etapa::Configuracoes),
                 ("Categorias".to_string(), Etapa::Categorias),
+                ("Bancos e Contas".to_string(), Etapa::Bancos),
                 ("Sair".to_string(), Etapa::Sair),
             ],
             etapa: Option::None,
@@ -59,6 +61,7 @@ impl App {
                 Etapa::Configuracoes => self.configuracoes(&mut terminal),
                 Etapa::Categorias => self.categorias(&mut terminal),
                 Etapa::ContraCheque => self.contracheque(&mut terminal),
+                Etapa::Bancos => self.bancos(&mut terminal),
 
                 Etapa::Sair => break,
             }
@@ -143,6 +146,16 @@ impl App {
             Ok(_) => {}
             Err(e) => {
                 log::info!("Falha ao abrir categirias: {e}");
+            }
+        }
+        self.etapa = Etapa::Menu
+    }
+
+    fn bancos(&mut self, terminal: &mut DefaultTerminal) {
+        match EditarBancos::default().run(terminal) {
+            Ok(_) => {}
+            Err(e) => {
+                log::info!("Falha ao abrir bancos: {e}");
             }
         }
         self.etapa = Etapa::Menu

@@ -1,3 +1,4 @@
+mod banco_wgt;
 mod categorizador_wgt;
 mod confirmar_categorizacao_wgt;
 mod csv_layout_wgt;
@@ -25,3 +26,4 @@ pub use lista_meta_wgt::ListaMeta;
 pub use config_wgt::EditarConfiguracoes;
 pub use lista_categorias_wgt::ListaCategoria;
 pub use contracheque_wgt::ContraCheque;
+pub use banco_wgt::ListaBancos as EditarBancos;

@@ -28,9 +28,7 @@ impl Banco {
 
     pub fn salvar_lista(novos: Vec<Banco>) {
         let mut bancos: Vec<Banco> = Banco::listar();
-
         merge_bancos(&mut bancos, novos);
-
         match serde_json::to_string_pretty(&bancos) {
             Ok(json) => arq_escrever(FIN, BANC, json),
             Err(erro) => log::error!("Erro ao salvar bancos: {}", erro),
@@ -39,6 +37,13 @@ impl Banco {
 
     pub fn salvar(banco: Banco) {
         Self::salvar_lista(vec![banco]);
+    }
+
+    pub fn salvar_tudo(bancos: Vec<Banco>) {
+        match serde_json::to_string_pretty(&bancos) {
+            Ok(json) => arq_escrever(FIN, BANC, json),
+            Err(e) => log::error!("Erro ao salvar bancos: {}", e),
+        }
     }
 }
 
